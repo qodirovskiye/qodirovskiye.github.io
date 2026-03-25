@@ -279,36 +279,21 @@
       margin-bottom: 28px;
     }
 
-    .contact-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-
-    .c-row {
+    .contact-icons {
       display: flex;
       align-items: center;
       gap: 20px;
-      padding: 13px 0;
-      border-bottom: 1px solid var(--line);
     }
 
-    .c-row:first-child { border-top: 1px solid var(--line); }
-
-    .c-key {
-      font-size: 10.5px;
-      font-weight: 500;
-      color: var(--faint);
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      width: 90px;
-      flex-shrink: 0;
+    .contact-icon {
+      color: #6B6B6B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
     }
 
-    .c-val {
-      font-size: 13px;
-      color: var(--body);
-    }
+    .contact-icon:hover { color: var(--accent); }
 
     /* ── Footer ── */
     footer {
@@ -492,16 +477,26 @@
 <section id="contact">
   <div class="w reveal">
     <p class="sec-label">Contact</p>
-    <p class="contact-text">Open to conversations about AI infrastructure, systems, and early-stage work.</p>
-    <div class="contact-meta">
-      <div class="c-row">
-        <span class="c-key">Location</span>
-        <span class="c-val">Shenzhen, China</span>
-      </div>
-      <div class="c-row">
-        <span class="c-key">Status</span>
-        <span class="c-val">Open to relevant conversations</span>
-      </div>
+    <p class="contact-text">Get in touch.</p>
+    <div class="contact-icons">
+
+      <a href="https://www.linkedin.com/in/qodirovskiye" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="contact-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="3"/>
+          <path d="M7 10v7"/>
+          <path d="M7 7v.01"/>
+          <path d="M11 17v-4c0-1.1.9-2 2-2s2 .9 2 2v4"/>
+          <path d="M11 10v7"/>
+        </svg>
+      </a>
+
+      <a href="mailto:qodirovskiye@gmail.com" aria-label="Email" class="contact-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <path d="m2 7 10 7 10-7"/>
+        </svg>
+      </a>
+
     </div>
   </div>
 </section>
