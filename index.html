@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Muhammadjon Qodirov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500&display=swap" rel="stylesheet" />
+  <style>
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0B0B0C;
+      --surface: #111113;
+      --line:    #1A1A1A;
+      --text:    #FFFFFF;
+      --body:    #B3B3B3;
+      --dim:     #8A8A8A;
+      --faint:   #6B6B6B;
+      --accent:  #A3FF12;
+      --w:       640px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    ::-webkit-scrollbar { width: 2px; }
+    ::-webkit-scrollbar-thumb { background: #222; }
+
+    /* ── Layout ── */
+    .w {
+      max-width: var(--w);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 50;
+      padding: 20px 0;
+    }
+
+    nav.on {
+      background: rgba(11,11,12,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    nav .w { display: flex; justify-content: space-between; align-items: center; }
+
+    .n-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .n-links {
+      list-style: none;
+      display: flex;
+      gap: 28px;
+    }
+
+    .n-links a {
+      font-size: 12.5px;
+      color: var(--faint);
+      transition: color 0.15s;
+    }
+
+    .n-links a:hover { color: var(--text); }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding-top: 80px;
+      padding-bottom: 80px;
+    }
+
+    .hero-sub {
+      font-size: 11.5px;
+      font-weight: 400;
+      color: var(--faint);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .hero-name {
+      font-size: clamp(46px, 8vw, 80px);
+      font-weight: 300;
+      letter-spacing: -0.04em;
+      line-height: 1.0;
+      color: #fff;
+      margin-bottom: 36px;
+    }
+
+    .hero-text {
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--body);
+      max-width: 420px;
+      line-height: 1.75;
+    }
+
+    .hero-text p + p { margin-top: 10px; }
+
+    /* ── Sections ── */
+    section {
+      padding: 72px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .sec-label {
+      font-size: 10.5px;
+      font-weight: 500;
+      color: var(--faint);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+
+    /* ── Now ── */
+    .now-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 26px 28px;
+    }
+
+    .now-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .now-body {
+      font-size: 14px;
+      color: var(--body);
+      line-height: 1.8;
+    }
+
+    /* ── Profile ── */
+    .profile-text p {
+      font-size: 15px;
+      color: var(--body);
+      line-height: 1.85;
+      max-width: 580px;
+    }
+
+    .profile-text p + p { margin-top: 16px; }
+
+    /* ── Work ── */
+    .work-list { display: flex; flex-direction: column; }
+
+    .work-item {
+      display: grid;
+      grid-template-columns: 108px 1fr;
+      gap: 0 24px;
+      padding: 26px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .work-item:last-child { border-bottom: none; }
+
+    .work-period {
+      font-size: 11.5px;
+      color: var(--dim);
+      padding-top: 3px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .work-role {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .work-org {
+      font-size: 12px;
+      color: var(--faint);
+      margin-bottom: 10px;
+    }
+
+    .work-desc {
+      font-size: 13.5px;
+      color: var(--body);
+      line-height: 1.78;
+    }
+
+    /* ── Mathematics ── */
+    .math-text p {
+      font-size: 15px;
+      color: var(--body);
+      line-height: 1.85;
+      max-width: 580px;
+    }
+
+    .math-text p + p { margin-top: 16px; }
+
+    /* ── Selected ── */
+    .sel-list { display: flex; flex-direction: column; }
+
+    .sel-item {
+      display: grid;
+      grid-template-columns: 10px 1fr;
+      gap: 0 16px;
+      padding: 15px 0;
+      border-bottom: 1px solid var(--line);
+      align-items: start;
+    }
+
+    .sel-item:first-child { border-top: 1px solid var(--line); }
+
+    .sel-dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--faint);
+      margin-top: 10px;
+    }
+
+    .sel-text {
+      font-size: 13.5px;
+      color: var(--body);
+      line-height: 1.7;
+    }
+
+    /* ── Education ── */
+    .edu-item {
+      display: grid;
+      grid-template-columns: 108px 1fr;
+      gap: 0 24px;
+      padding: 20px 0;
+    }
+
+    .edu-year {
+      font-size: 11.5px;
+      color: var(--dim);
+      padding-top: 3px;
+    }
+
+    .edu-deg {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .edu-inst {
+      font-size: 12.5px;
+      color: var(--faint);
+    }
+
+    /* ── Contact ── */
+    .contact-text {
+      font-size: 15px;
+      color: var(--body);
+      line-height: 1.8;
+      max-width: 400px;
+      margin-bottom: 28px;
+    }
+
+    .contact-icons {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .contact-icon {
+      color: #6B6B6B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+
+    .contact-icon:hover { color: var(--accent); }
+
+    /* ── Footer ── */
+    footer {
+      padding: 32px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    footer .w {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .f-l, .f-r {
+      font-size: 11.5px;
+      color: var(--faint);
+    }
+
+    /* ── Accent ── */
+    .accent { color: var(--accent); }
+
+    a.link {
+      color: var(--accent);
+      transition: color 0.15s;
+    }
+
+    a.link:hover { color: #fff; }
+
+    /* ── Reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* ── Hero entrance ── */
+    .h1 { animation: up 0.7s 0.05s cubic-bezier(0.22,1,0.36,1) both; }
+    .h2 { animation: up 0.7s 0.15s cubic-bezier(0.22,1,0.36,1) both; }
+    .h3 { animation: up 0.7s 0.25s cubic-bezier(0.22,1,0.36,1) both; }
+
+    @keyframes up {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 540px) {
+      .w { padding: 0 18px; }
+      .hero { padding-bottom: 60px; }
+      .hero-name { font-size: clamp(36px, 12vw, 60px); }
+      .n-links { display: none; }
+      section { padding: 56px 0; }
+      .work-item, .edu-item {
+        grid-template-columns: 1fr;
+        gap: 2px;
+      }
+      .work-period, .edu-year { margin-bottom: 6px; }
+    }
+
+  </style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="w">
+    <span class="n-name">Muhammadjon Qodirov</span>
+    <ul class="n-links">
+      <li><a href="#now">Now</a></li>
+      <li><a href="#profile">Profile</a></li>
+      <li><a href="#work">Work</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="w">
+  <div class="hero">
+    <p class="hero-sub h1">Shenzhen · Builder · Mathematics</p>
+    <h1 class="hero-name h2">Muhammadjon<br>Qodirov</h1>
+    <div class="hero-text h3">
+      <p>I work on systems that make real-world environments legible to machines.</p>
+      <p>My focus is on AI, data infrastructure, and the mathematical structure behind large-scale systems.</p>
+    </div>
+  </div>
+</div>
+
+<section id="now">
+  <div class="w reveal">
+    <p class="sec-label">Now</p>
+    <div class="now-card">
+      <p class="now-title">Co-founding <span class="accent">Mortar</span> in Shenzhen.</p>
+      <p class="now-body">Mortar focuses on capturing and structuring real-world human activity as usable data for autonomous systems. The goal is to make physical environments machine-readable at scale.</p>
+    </div>
+  </div>
+</section>
+
+<section id="profile">
+  <div class="w reveal">
+    <p class="sec-label">Profile</p>
+    <div class="profile-text">
+      <p>My background is in olympiad mathematics, where the focus is not computation but proof — understanding structure, identifying constraints, and constructing arguments that hold under pressure. That training shaped how I approach problems.</p>
+      <p>Over time, this extended into working closely with students in competitive mathematics, where explaining difficult ideas clearly became as important as solving them.</p>
+      <p>Today, I apply the same way of thinking to systems and AI — turning real-world problems into structured forms that machines can work with.</p>
+    </div>
+  </div>
+</section>
+
+<section id="work">
+  <div class="w reveal">
+    <p class="sec-label">Work</p>
+    <div class="work-list">
+
+      <div class="work-item">
+        <span class="work-period">2026 —</span>
+        <div>
+          <p class="work-role">Co-founder, <span class="accent">Mortar</span></p>
+          <p class="work-org">Shenzhen</p>
+          <p class="work-desc">Working on early-stage system design and data infrastructure for physical intelligence — focusing on how real-world environments are captured, organized, and used in machine learning systems.</p>
+        </div>
+      </div>
+
+      <div class="work-item">
+        <span class="work-period">2023 — 2025</span>
+        <div>
+          <p class="work-role">Mathematics Trainer &amp; Mentor</p>
+          <p class="work-org">Tajikistan</p>
+          <p class="work-desc">Prepared students for national-level mathematics competitions. Designed problem-based sessions focused on proof, reasoning, and structured thinking.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="mathematics">
+  <div class="w reveal">
+    <p class="sec-label">Mathematics</p>
+    <div class="math-text">
+      <p>Olympiad mathematics is about proof — building arguments that cannot be wrong.</p>
+      <p>It trains a specific way of thinking: identifying what matters, breaking unfamiliar problems into structure, and staying with complexity long enough to reach clarity.</p>
+      <p>This approach was reinforced through both competition and mentorship, and is the same way I now think about systems and AI.</p>
+    </div>
+  </div>
+</section>
+
+<section id="selected">
+  <div class="w reveal">
+    <p class="sec-label">Selected</p>
+    <div class="sel-list">
+      <div class="sel-item">
+        <div class="sel-dot"></div>
+        <p class="sel-text">Represented Tajikistan in international mathematics olympiads</p>
+      </div>
+      <div class="sel-item">
+        <div class="sel-dot"></div>
+        <p class="sel-text">Mentored students to national-level competition results</p>
+      </div>
+      <div class="sel-item">
+        <div class="sel-dot"></div>
+        <p class="sel-text">Co-founding <span class="accent">Mortar</span> — early-stage physical intelligence infrastructure</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="education">
+  <div class="w reveal">
+    <p class="sec-label">Education</p>
+    <div class="edu-item">
+      <span class="edu-year">2025 —</span>
+      <div>
+        <p class="edu-deg">B.Sc. Computer Science</p>
+        <p class="edu-inst">The Chinese University of Hong Kong, Shenzhen</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="w reveal">
+    <p class="sec-label">Contact</p>
+    <p class="contact-text">Get in touch.</p>
+    <div class="contact-icons">
+
+      <a href="https://www.linkedin.com/in/qodirovskiye" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="contact-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="3"/>
+          <path d="M7 10v7"/>
+          <path d="M7 7v.01"/>
+          <path d="M11 17v-4c0-1.1.9-2 2-2s2 .9 2 2v4"/>
+          <path d="M11 10v7"/>
+        </svg>
+      </a>
+
+      <a href="mailto:qodirovskiye@gmail.com" aria-label="Email" class="contact-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <path d="m2 7 10 7 10-7"/>
+        </svg>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="w">
+    <span class="f-l">Muhammadjon Qodirov</span>
+    <span class="f-r">2026</span>
+  </div>
+</footer>
+
+<script>
+  // Nav on scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('on', window.scrollY > 40);
+  }, { passive: true });
+
+  // Section reveal
+  const io = new IntersectionObserver(
+    entries => entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    }),
+    { threshold: 0.06, rootMargin: '0px 0px -30px 0px' }
+  );
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
