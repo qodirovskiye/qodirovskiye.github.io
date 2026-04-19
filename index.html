@@ -1,7 +1,625 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <meta charset="utf-8" /><!doctype html>
+<html lang="en">
+<head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Muhammadjon Qodirov</title>
+  <meta name="description" content="Muhammadjon Qodirov — Data Science student at CUHK-Shenzhen, co-founder at Mortar." />
+  <meta name="author" content="Muhammadjon Qodirov" />
+
+  <meta property="og:title" content="Muhammadjon Qodirov" />
+  <meta property="og:description" content="Data Science student at CUHK-Shenzhen. Co-founder at Mortar — applied AI for construction." />
+  <meta property="og:type" content="website" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='72' font-size='72' font-family='Georgia,serif' font-style='italic'%3EM%3C/text%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #faf8f3;
+      --bg-alt: #f3efe6;
+      --ink: #1a1a1a;
+      --ink-soft: #4a4a48;
+      --ink-mute: #7a7974;
+      --line: #d9d4c7;
+      --accent: #b8543c;
+      --accent-soft: #e8ddd0;
+      --radius: 6px;
+      --max: 780px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      font-feature-settings: "ss01", "cv11";
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px solid var(--line);
+      transition: border-color .2s ease, color .2s ease;
+    }
+    a:hover { color: var(--accent); border-color: var(--accent); }
+
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    /* Top nav — unobtrusive */
+    nav.top {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(250, 248, 243, 0.85);
+      backdrop-filter: saturate(150%) blur(10px);
+      -webkit-backdrop-filter: saturate(150%) blur(10px);
+      border-bottom: 1px solid transparent;
+      transition: border-color .2s ease;
+    }
+    nav.top.scrolled { border-color: var(--line); }
+    nav.top .inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 28px;
+      max-width: var(--max);
+      margin: 0 auto;
+      font-size: 14px;
+    }
+    nav.top .brand {
+      font-family: 'Fraunces', Georgia, serif;
+      font-style: italic;
+      font-weight: 500;
+      font-size: 18px;
+      border: 0;
+    }
+    nav.top .links { display: flex; gap: 22px; }
+    nav.top .links a {
+      border: 0;
+      color: var(--ink-soft);
+      font-size: 13px;
+      letter-spacing: .02em;
+    }
+    nav.top .links a:hover { color: var(--accent); }
+    @media (max-width: 520px) {
+      nav.top .links { gap: 16px; }
+      nav.top .links a:nth-child(3) { display: none; }
+    }
+
+    /* Hero */
+    header.hero {
+      padding: 90px 0 70px;
+    }
+    .eyebrow {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .eyebrow::before {
+      content: '';
+      width: 24px;
+      height: 1px;
+      background: var(--ink-mute);
+      display: inline-block;
+    }
+    h1.name {
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 400;
+      font-size: clamp(42px, 7vw, 68px);
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      margin: 0 0 24px;
+    }
+    h1.name em {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--accent);
+    }
+    .lede {
+      font-size: 19px;
+      line-height: 1.55;
+      color: var(--ink-soft);
+      max-width: 600px;
+      margin: 0 0 32px;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      font-size: 13px;
+      color: var(--ink-mute);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+    }
+    .meta span { display: inline-flex; align-items: center; gap: 8px; }
+    .meta span::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-block;
+    }
+    .meta span + span::before { background: var(--ink-mute); }
+
+    /* Section rhythm */
+    section { padding: 56px 0; }
+    section + section { border-top: 1px solid var(--line); }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      gap: 16px;
+    }
+    h2 {
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 400;
+      font-size: 26px;
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+    .section-num {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 12px;
+      color: var(--ink-mute);
+      letter-spacing: .08em;
+    }
+
+    /* About */
+    .about p {
+      font-size: 17px;
+      line-height: 1.7;
+      color: var(--ink-soft);
+      margin: 0 0 18px;
+    }
+    .about p:last-child { margin-bottom: 0; }
+    .about strong { color: var(--ink); font-weight: 500; }
+
+    /* Now */
+    .now-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 18px;
+    }
+    .now-list li {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 18px;
+      align-items: baseline;
+    }
+    .now-list .tag {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      padding-top: 3px;
+    }
+    .now-list .body { color: var(--ink-soft); font-size: 16px; line-height: 1.6; }
+    .now-list .body strong { color: var(--ink); font-weight: 500; }
+    @media (max-width: 520px) {
+      .now-list li { grid-template-columns: 1fr; gap: 4px; }
+    }
+
+    /* Experience — timeline-ish */
+    .roles { display: grid; gap: 28px; }
+    .role {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 24px;
+    }
+    .role .when {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 12px;
+      color: var(--ink-mute);
+      padding-top: 5px;
+      letter-spacing: .02em;
+    }
+    .role h3 {
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 500;
+      font-size: 18px;
+      margin: 0 0 2px;
+      letter-spacing: -0.005em;
+    }
+    .role .org {
+      color: var(--ink-mute);
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .role p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    @media (max-width: 520px) {
+      .role { grid-template-columns: 1fr; gap: 6px; }
+      .role .when { padding-top: 0; }
+    }
+
+    /* Achievements */
+    .wins {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 14px;
+    }
+    .wins li {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      font-size: 15px;
+      color: var(--ink-soft);
+      line-height: 1.55;
+    }
+    .wins li::before {
+      content: '—';
+      color: var(--ink-mute);
+      font-family: 'Fraunces', serif;
+    }
+    .wins strong { color: var(--ink); font-weight: 500; }
+
+    /* Languages as chips */
+    .langs { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 12px;
+      padding: 5px 11px;
+      border: 1px solid var(--line);
+      border-radius: 100px;
+      color: var(--ink-soft);
+      background: var(--bg);
+    }
+
+    /* Contact */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--bg);
+    }
+    .contact-grid a {
+      padding: 18px 20px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: background .2s ease;
+    }
+    .contact-grid a:hover { background: var(--accent-soft); color: var(--ink); }
+    .contact-grid a:nth-child(2n) { border-right: 0; }
+    .contact-grid a:nth-last-child(-n+2) { border-bottom: 0; }
+    .contact-grid .label {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+    .contact-grid .value {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 17px;
+      color: var(--ink);
+    }
+    @media (max-width: 520px) {
+      .contact-grid { grid-template-columns: 1fr; }
+      .contact-grid a { border-right: 0; }
+      .contact-grid a:nth-last-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .contact-grid a:last-child { border-bottom: 0; }
+    }
+
+    /* Footer */
+    footer {
+      padding: 40px 0 60px;
+      text-align: center;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 12px;
+      color: var(--ink-mute);
+      border-top: 1px solid var(--line);
+    }
+    footer .sig { font-family: 'Fraunces', serif; font-style: italic; font-size: 13px; }
+
+    /* Reveal on scroll */
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      html { scroll-behavior: auto; }
+    }
+
+    ::selection { background: var(--accent); color: var(--bg); }
+  </style>
+</head>
+<body>
+
+  <nav class="top" id="topnav">
+    <div class="inner">
+      <a href="#top" class="brand">Muhammadjon</a>
+      <div class="links">
+        <a href="#about">About</a>
+        <a href="#work">Work</a>
+        <a href="#wins">Awards</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap" id="top">
+
+    <header class="hero">
+      <div class="eyebrow reveal">Shenzhen · From Dushanbe</div>
+      <h1 class="name reveal">
+        Muhammadjon<br/>Qodirov<em>.</em>
+      </h1>
+      <p class="lede reveal">
+        Data Science undergraduate at CUHK-Shenzhen and co-founder at
+        <a href="https://www.getmortar.ai/" target="_blank" rel="noopener">Mortar</a>,
+        where we're building the data and hardware layer for physical AI —
+        wearable capture systems and multimodal, first-person data to train
+        robotics, embodied AI, and real-world foundation models.
+      </p>
+      <div class="meta reveal">
+        <span>Available for conversations</span>
+        <span>qodirovskiye@gmail.com</span>
+      </div>
+    </header>
+
+    <section id="about" class="about">
+      <div class="section-head reveal">
+        <h2>About</h2>
+        <span class="section-num">01 / 05</span>
+      </div>
+      <p class="reveal">
+        I grew up in Dushanbe, Tajikistan, and spent most of my teenage years doing
+        competitive mathematics — representing my country at international olympiads
+        and later teaching the next cohort of students the same craft.
+      </p>
+      <p class="reveal">
+        Today I study at the <strong>Chinese University of Hong Kong, Shenzhen</strong>,
+        School of Data Science, on a full Honourable Scholarship — and I was the
+        first Tajik student admitted. The combination of olympiad-trained problem
+        solving and applied data work is what I bring to everything I do.
+      </p>
+      <p class="reveal">
+        At <strong>Mortar</strong>, I'm a co-founder working on the research and
+        data side — helping capture what matters from industrial environments,
+        validating it in the field, and turning those learning loops into shipped
+        capability alongside my co-founders.
+      </p>
+      <p class="reveal">
+        Outside studies and Mortar, I try to stay active on both sides of life —
+        running structured outreach for prospective CUHK-Shenzhen applicants,
+        and playing football for the college team.
+      </p>
+    </section>
+
+    <section id="now">
+      <div class="section-head reveal">
+        <h2>Now</h2>
+        <span class="section-num">02 / 05</span>
+      </div>
+      <ul class="now-list">
+        <li class="reveal">
+          <span class="tag">Building</span>
+          <span class="body"><strong>Mortar</strong> — the data and hardware layer for physical AI.</span>
+        </li>
+        <li class="reveal">
+          <span class="tag">Studying</span>
+          <span class="body"><strong>BSc Data Science</strong> at CUHK-Shenzhen (2025–2029).</span>
+        </li>
+        <li class="reveal">
+          <span class="tag">Learning</span>
+          <span class="body"><strong>Mandarin and Italian</strong> — the sixth and seventh, after Tajik, Russian, English, Farsi, and Arabic.</span>
+        </li>
+      </ul>
+    </section>
+
+    <section id="work">
+      <div class="section-head reveal">
+        <h2>Work</h2>
+        <span class="section-num">03 / 05</span>
+      </div>
+      <div class="roles">
+        <div class="role reveal">
+          <div class="when">Dec 2025 — Now</div>
+          <div>
+            <h3>Co-founder</h3>
+            <div class="org">Mortar · Shenzhen</div>
+            <p>
+              Mortar is building the data and hardware layer for physical AI —
+              wearable capture systems and multimodal first-person data to train
+              robotics, embodied AI, and real-world foundation models. I work on
+              the research and data side: capturing what matters from industrial
+              environments, validating performance in the field, and turning
+              learning loops into shipped capability.
+            </p>
+          </div>
+        </div>
+
+        <div class="role reveal">
+          <div class="when">Dec 2025 — Now</div>
+          <div>
+            <h3>Student Ambassador</h3>
+            <div class="org">CUHK-Shenzhen</div>
+            <p>
+              Selected to represent the university. I host info sessions and webinars,
+              answer admissions questions, and run a Telegram channel that gives
+              prospective applicants verified, structured guidance.
+            </p>
+          </div>
+        </div>
+
+        <div class="role reveal">
+          <div class="when">Aug 2024 — May 2025</div>
+          <div>
+            <h3>President &amp; Math Olympiad Tutor</h3>
+            <div class="org">Lyceum for Gifted Students · Dushanbe</div>
+            <p>
+              Ran the Math Olympiad Club — study sessions, matches, and informal
+              meetups to keep the group tight. Taught Grade 7–8 students through
+              structured lessons and problem sets. Prepared students for the
+              National Math Olympiad 2025 (multiple placed 2nd and 3rd) and mentored
+              JBMO candidates — two qualified for Tajikistan's national team, one
+              earned 2nd place.
+            </p>
+          </div>
+        </div>
+
+        <div class="role reveal">
+          <div class="when">Mar 2024 — May 2025</div>
+          <div>
+            <h3>CPC Participant &amp; CCC Member</h3>
+            <div class="org">EducationUSA · Dushanbe</div>
+            <p>
+              Completed college-preparation programming and a competitive cohort
+              advising program — workshops and deliverables on admissions strategy,
+              academic planning, and application readiness. Volunteered at events.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="wins">
+      <div class="section-head reveal">
+        <h2>Selected awards</h2>
+        <span class="section-num">04 / 05</span>
+      </div>
+      <ul class="wins">
+        <li class="reveal">
+          <span><strong>Ilm Furugi Ma'rifat</strong> — 1st Place, Mathematics.
+          Presidential diploma signed by the President of Tajikistan; exemption from
+          the national university entrance examination.</span>
+        </li>
+        <li class="reveal">
+          <span><strong>CUHK-Shenzhen Honourable Scholarship (Full)</strong> — RMB 165,000/year.</span>
+        </li>
+        <li class="reveal">
+          <span><strong>5× National Math Olympiad medalist</strong> (Tajikistan).</span>
+        </li>
+        <li class="reveal">
+          <span><strong>Dushanbe Mayor Scholarship</strong> — awarded four times for academic excellence.</span>
+        </li>
+        <li class="reveal">
+          <span><strong>Indonesian International Mathematical Olympiad (IIMC)</strong> — 2nd Place.</span>
+        </li>
+        <li class="reveal">
+          <span><strong>Caucasus Mathematical Olympiad (CMO)</strong> — 3rd Place.</span>
+        </li>
+        <li class="reveal">
+          <span><strong>Talent Lab, Azerbaijan Science Olympiad</strong> — 3rd Place.</span>
+        </li>
+        <li class="reveal">
+          <span><strong>Participated</strong> in JBMO (2021) and IZhO (2024).</span>
+        </li>
+      </ul>
+
+    </section>
+
+    <section id="contact">
+      <div class="section-head reveal">
+        <h2>Say hello</h2>
+        <span class="section-num">05 / 05</span>
+      </div>
+      <p class="reveal" style="color:var(--ink-soft); margin:0 0 24px; font-size:17px;">
+        Best reached by email. Happy to talk about Mortar, applied AI, olympiad math,
+        CUHK-Shenzhen admissions, or football.
+      </p>
+      <div class="contact-grid reveal">
+        <a href="mailto:qodirovskiye@gmail.com">
+          <span class="label">Email</span>
+          <span class="value">qodirovskiye@gmail.com</span>
+        </a>
+        <a href="https://www.linkedin.com/in/qodirovskiye" target="_blank" rel="noopener">
+          <span class="label">LinkedIn</span>
+          <span class="value">/in/qodirovskiye</span>
+        </a>
+        <a href="https://github.com/qodirovksiye" target="_blank" rel="noopener">
+          <span class="label">GitHub</span>
+          <span class="value">/qodirovksiye</span>
+        </a>
+        <a href="https://t.me/qodirovskiye" target="_blank" rel="noopener">
+          <span class="label">Telegram</span>
+          <span class="value">@qodirovskiye</span>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="sig">Muhammadjon Qodirov</div>
+      <div style="margin-top:4px">Shenzhen · 2026</div>
+    </div>
+  </footer>
+
+  <script>
+    // Nav border on scroll
+    const nav = document.getElementById('topnav');
+    const onScroll = () => {
+      if (window.scrollY > 12) nav.classList.add('scrolled');
+      else nav.classList.remove('scrolled');
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // Reveal on scroll
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      }
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach((el, i) => {
+      el.style.transitionDelay = Math.min(i * 30, 240) + 'ms';
+      io.observe(el);
+    });
+  </script>
+</body>
+</html>
+
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Muhammadjon Qodirov</title>
   <meta name="description" content="Muhammadjon Qodirov — Data Science student at CUHK-Shenzhen, co-founder at Mortar." />
