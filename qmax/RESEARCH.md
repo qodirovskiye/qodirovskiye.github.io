@@ -45,3 +45,16 @@ QMax does not claim parity with QOVES's advertised 160+ assessments. Skin diagno
 ## GitHub hosting
 
 The project is a static site with relative asset paths, so it can run under a GitHub Pages repository path without a purchased domain. GitHub Pages does not supply an application backend and is not intended for commercial SaaS or e-commerce. This version is a free educational project, does not collect visitor photos, and clearly states that it is independent of QOVES. [GitHub Pages limits](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)
+
+
+## Follow-up: rating apps and skin-care routines
+
+At the user's request, QMax now has a **Score & skin care** tab. Public products such as [LooksMax](https://looksmaxapp.com/) and [Looks Max by Solarity](https://looksmax.solarityai.com/about) advertise numeric ratings and routines, but their public feature pages do not provide a reusable trained model or complete scoring implementation. LooksMax explicitly describes its ratings as entertainment-grade. These products informed the feature structure, not QMax's numerical values.
+
+QMax's optional 18+ aesthetic experiment is **not a trained attractiveness model**. Its targets, tolerances, weights, formula, and missing-data policy are displayed in the interface. They are authored aesthetic preferences, not clinical norms or a population percentile. The user can inspect the report without revealing a score. Missing components remain missing, and fewer than three available components produce no overall score. The score is not comparable to another app's rating and has not been validated against human judgments.
+
+The new routine is educational guidance selected from self-reported concerns. It does not infer skin disease, prescribe medication, or recommend cosmetic procedures from the photograph. References are the American Academy of Dermatology's guidance on [simple routines](https://www.aad.org/public/everyday-care/skin-care-basics/care/skin-care-budget), [oily skin](https://www.aad.org/public/everyday-care/skin-care-basics/dry/oily-skin), [dry skin](https://www.aad.org/public/everyday-care/skin-care-basics/dry/dermatologists-tips-relieve-dry-skin), [acne self-care](https://www.aad.org/public/diseases/acne/skin-care/tips), [sunscreen selection](https://www.aad.org/public/everyday-care/sun-protection/shade-clothing-sunscreen/how-to-select-sunscreen), [pregnancy skin care](https://www.aad.org/public/everyday-care/skin-care-secrets/routine/pregnancy-skin-care), and [retinoids](https://www.aad.org/public/everyday-care/skin-care-secrets/anti-aging/retinoid-retinol/). Each displayed step links to its source. Pregnancy, breastfeeding, existing prescriptions, and persistent symptoms route treatment questions to a clinician.
+
+## Navigation repair
+
+The upload CTA now targets a real `#studio` section and can reveal that screen before scripts start. Initial routing runs before optional IndexedDB report loading; blocked report storage cannot keep the upload screen hidden. Re-activating an already-selected studio link reopens it. Regression tests cover these cases, alongside the photo geometry and new guidance functions.

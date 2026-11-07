@@ -1,6 +1,7 @@
 import { buildInsights, buildPlan } from './measurements.js';
 import { saveReport, getReport, deleteReport, listReports } from './storage.js';
 import { mountVisualStudio } from './visualize.js';
+import { mountGuidance } from './guidance.js';
 
 const $ = selector => document.querySelector(selector);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -15,7 +16,7 @@ function toast(message) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { $('#toast').hidden = true; }, 5000);
 }
 function showView(name) {
-  for (const view of views) $(`#${view}-view`).hidden = view !== name;
+  for (const view of views) $(view === 'studio' ? '#studio' : `#${view}-view`).hidden = view !== name;
   document.title = `${({ home: 'A clearer picture of you.', studio: 'Your analysis studio', result: 'Your facial report', reports: 'Your private reports', methodology: 'Methods & privacy' })[name]} — QMax`;
 }
 async function refreshArchive() {
@@ -36,13 +37,13 @@ async function route() {
     if (!activeReport) { showView('reports'); await renderArchive(); toast('This report is not stored in this browser.'); return; }
     await refreshArchive();
     if (revision !== routeRevision) return;
-    showView('result'); renderReport(); window.scrollTo(0, 0); return;
+    showView('result'); renderReport(); window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); return;
   }
-  if (hash === 'reports') { showView('reports'); await renderArchive(); window.scrollTo(0, 0); return; }
-  if (hash === 'studio' || hash === 'methodology') { showView(hash); window.scrollTo(0, 0); return; }
+  if (hash === 'reports') { showView('reports'); await renderArchive(); window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); return; }
+  if (hash === 'studio' || hash === 'methodology') { showView(hash); window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); return; }
   showView('home');
   if (hash !== 'home') document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  else window.scrollTo(0, 0);
+  else window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
 }
 function setError(message) {
   const element = $('#analysis-error'); element.textContent = message; element.hidden = !message;
@@ -146,16 +147,18 @@ function metricCard(metric) {
 }
 function renderReport() {
   const report = activeReport;
-  const tabs = [['overview', 'Overview'], ['features', 'Feature analysis'], ['plan', 'Your exploration plan'], ['visualize', 'Appearance studio'], ['comparison', 'Compare reports']];
+  const tabs = [['overview', 'Overview'], ['features', 'Feature analysis'], ['plan', 'Your exploration plan'], ['visualize', 'Appearance studio'], ['guidance', 'Score & skin care'], ['comparison', 'Compare reports']];
   $('#result-view').innerHTML = `<a class="back-link" href="#reports">← My reports</a><div class="print-heading">QMAX / PRIVATE PHOTO ANALYSIS</div><div class="result-title-row"><div><span class="eyebrow">${report.sample ? 'SAMPLE PORTRAIT · REAL MODEL OUTPUT' : 'YOUR PERSONAL FACIAL REPORT'}</span><h1>${escape(report.title)}</h1><p>${dateLabel(report.createdAt)} · ${report.landmarkCount} landmarks detected · ${report.metrics.length} photo measurements</p></div><div class="report-actions"><button class="button outline" data-action="save" ${report.saved ? 'disabled' : ''}>${report.saved ? 'Saved on this device ✓' : 'Save on this device'}</button><button class="button outline" data-action="export">Export data ↓</button><button class="button dark" data-action="print">Print / PDF ↗</button></div></div>${report.sample ? '<div class="notice">You are exploring an example portrait. These are real measurements from the local model, not your personal results. <a class="underlined" href="#studio">Analyze your own photo ↗</a></div>' : ''}<div class="result-tabs" role="tablist" aria-label="Report sections">${tabs.map(([key, label]) => `<button id="tab-${key}" role="tab" data-tab="${key}" aria-controls="panel-${key}" aria-selected="${key === activeTab}" tabindex="${key === activeTab ? '0' : '-1'}">${label}</button>`).join('')}</div>
     <div id="panel-overview" class="report-panel" role="tabpanel" aria-labelledby="tab-overview" ${activeTab === 'overview' ? '' : 'hidden'}><div class="report-layout"><div class="face-panel"><div class="face-canvas-wrap"><img id="report-photo" src="${report.photo}" alt="The portrait used for this analysis"><canvas id="face-canvas" aria-label="Detected facial landmark overlay"></canvas></div><div class="overlay-controls" aria-label="Photo overlay"><button data-overlay="photo" aria-pressed="${overlay === 'photo'}">Photo</button><button data-overlay="dots" aria-pressed="${overlay === 'dots'}">Landmarks</button><button data-overlay="guides" aria-pressed="${overlay === 'guides'}">Feature map</button></div><p>${report.landmarkCount} points detected by MediaPipe. Overlay follows the model's actual output.</p></div><div><div class="report-summary"><span class="eyebrow">A MAP, NOT A JUDGMENT.</span><h2>A little more detail.<br><em>The same unique you.</em></h2><p>These ratios describe visible geometry in this photo. Explore the measurements, then choose what interests you.</p></div><div class="metric-grid">${report.metrics.slice(0, 8).map(metricCard).join('')}</div><div class="photo-notes"><h3>Your capture notes</h3><p>${report.warnings.length ? 'Keep these limitations in mind when reading your results.' : 'This photo passed the basic framing and pose checks. That does not guarantee measurement accuracy.'}</p><ul>${report.warnings.map(warning => `<li>${escape(warning)}</li>`).join('')}<li>Head roll: ${report.quality.rollDegrees}°. In-plane rotation corrected before measurement.</li><li>Camera distance, expression, perspective, and detection error can affect every ratio.</li></ul></div></div></div></div>
     <div id="panel-features" class="report-panel" role="tabpanel" aria-labelledby="tab-features" ${activeTab === 'features' ? '' : 'hidden'}><span class="eyebrow">FROM THE WHOLE TO THE DETAILS</span><h2>Your features, <em>in context.</em></h2><p class="lead">Every number has a method. Explore the relationships without comparing them to an invented ideal.</p><div class="metric-grid feature-metrics">${report.metrics.map(metricCard).join('')}</div><div class="insights">${buildInsights(report.metrics).map((insight, index) => `<article class="insight-card"><span class="insight-number">0${index + 1}</span><div><h3>${escape(insight.title)}</h3><p>${escape(insight.text)}</p></div></article>`).join('')}</div></div>
     <div id="panel-plan" class="report-panel" role="tabpanel" aria-labelledby="tab-plan" ${activeTab === 'plan' ? '' : 'hidden'}><span class="eyebrow">SMALL EXPERIMENTS. YOUR OWN PREFERENCES.</span><h2>Your next <em>little steps.</em></h2><p class="lead">A styling and observation checklist based on your chosen goal. It's an exploration guide, not a medical protocol or a promise of change.</p><div class="plan-progress"><progress max="${report.plan.length}" value="${report.completedTasks.length}"></progress><span id="plan-progress-text">${report.completedTasks.length} of ${report.plan.length} explored</span></div>${report.plan.map(task => `<label class="plan-card"><input type="checkbox" data-task="${escape(task.id)}" ${report.completedTasks.includes(task.id) ? 'checked' : ''}><span><h3>${escape(task.title)}</h3><p>${escape(task.text)}</p></span></label>`).join('')}<p class="photo-notes">${report.saved ? 'Your checklist is saved with this report in this browser.' : 'Save this report to keep your checklist between visits.'}</p></div>
     <div id="panel-visualize" class="report-panel" role="tabpanel" aria-labelledby="tab-visualize" ${activeTab === 'visualize' ? '' : 'hidden'}></div>
+    <div id="panel-guidance" class="report-panel" role="tabpanel" aria-labelledby="tab-guidance" ${activeTab === 'guidance' ? '' : 'hidden'}></div>
     <div id="panel-comparison" class="report-panel" role="tabpanel" aria-labelledby="tab-comparison" ${activeTab === 'comparison' ? '' : 'hidden'}><span class="eyebrow">THE SAME FACE. A DIFFERENT CAPTURE.</span><h2>Perspective <em>over time.</em></h2><p class="lead">Compare two reports with the same method. Changes in a ratio do not automatically mean improvement or a physical change.</p><div class="comparison-controls"><label for="compare-select">Compare this report with</label><select id="compare-select"><option value="">Choose a saved report</option>${archive.filter(r => r.id !== report.id && r.methodVersion === report.methodVersion).map(r => `<option value="${escape(r.id)}">${escape(r.title)}${r.sample ? ' (sample)' : ''} · ${dateLabel(r.createdAt)}</option>`).join('')}</select></div><div id="compare-content">${archive.filter(r => r.id !== report.id).length ? '<p class="photo-notes">Choose another saved report to see its photo and measurements alongside this one.</p>' : '<div class="empty-state"><h2>One photo is a beginning.</h2><p>Save this report, then analyze another photo using the same setup. You can compare the two here.</p><a href="#studio" class="button dark">Analyze another photo ↗</a></div>'}</div></div>
-    <p class="report-disclaimer">QMax is an independent experimental project. Measurements are two-dimensional photo estimates, not medical assessments or attractiveness scores. No clinical or demographic norms are used. <a class="underlined" href="#methodology">Read the methodology ↗</a></p>`;
+    <p class="report-disclaimer">QMax is an independent experimental project. Photo measurements are estimates. The optional aesthetic rubric is unvalidated; skin-care guidance is educational and based on your answers. No clinical or demographic norms are used. <a class="underlined" href="#methodology">Read the methodology ↗</a></p>`;
   const photo = $('#report-photo'); if (photo.complete) drawOverlay(); else photo.addEventListener('load', drawOverlay, { once: true });
   if (activeTab === 'visualize') visualCleanup = mountVisualStudio($('#panel-visualize'), report, toast);
+  if (activeTab === 'guidance') mountGuidance($('#panel-guidance'), report, persistCurrent);
 }
 function drawOverlay() {
   const canvas = $('#face-canvas'), image = $('#report-photo');
@@ -178,13 +181,14 @@ function drawOverlay() {
   }
 }
 function selectTab(tab) {
-  const choices = ['overview', 'features', 'plan', 'visualize', 'comparison'];
+  const choices = ['overview', 'features', 'plan', 'visualize', 'guidance', 'comparison'];
   if (!choices.includes(tab) || !activeReport) return;
   activeTab = tab;
   if (visualCleanup) { visualCleanup(); visualCleanup = undefined; }
   for (const key of choices) { const button = $(`#tab-${key}`); button.setAttribute('aria-selected', key === tab); button.tabIndex = key === tab ? 0 : -1; $(`#panel-${key}`).hidden = key !== tab; }
   if (tab === 'overview') drawOverlay();
   if (tab === 'visualize') visualCleanup = mountVisualStudio($('#panel-visualize'), activeReport, toast);
+  if (tab === 'guidance') mountGuidance($('#panel-guidance'), activeReport, persistCurrent);
 }
 async function persistCurrent() {
   if (!activeReport) return;
@@ -198,9 +202,9 @@ async function renderArchive() {
 function exportReport() {
   if (!activeReport) return;
   const { photo, saved, ...report } = activeReport;
-  const blob = new Blob([JSON.stringify({ ...report, exportNotes: 'Photo omitted. Contains facial geometry from a single photo; handle as personal data.' }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ ...report, exportNotes: 'Photo omitted. Contains facial geometry and any optional self-reported skin-care preferences; handle as personal data.' }, null, 2)], { type: 'application/json' });
   download(blob, `qmax-report-${activeReport.createdAt.slice(0, 10)}.json`);
-  toast('Report exported. The file contains measurements; the photo is omitted.');
+  toast('Report exported. The photo is omitted; measurements and any care preferences are included.');
 }
 export function download(blob, filename) {
   const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = filename; document.body.append(link); link.click(); link.remove();setTimeout(() => URL.revokeObjectURL(url), 5000);
@@ -239,6 +243,10 @@ dropzone.addEventListener('drop', async event => {
 });
 $('#cancel-analysis').addEventListener('click', () => cancelAnalysis());
 document.addEventListener('click', async event => {
+  const studioLink = event.target.closest('a[href="#studio"]');
+  if (studioLink && location.hash === '#studio' && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+    event.preventDefault(); await route(); return;
+  }
   const action = event.target.closest('[data-action]')?.dataset.action;
   if (action === 'sample') { event.preventDefault(); await sample(); }
   if (action === 'save') { if (await persistCurrent()) { toast('Saved privately in this browser.'); renderReport(); } }
@@ -270,4 +278,5 @@ document.addEventListener('keydown', event => {
 });
 window.addEventListener('hashchange', route);
 window.addEventListener('pagehide', () => { analysisWorker?.terminate(); if (selectedImage?.url) URL.revokeObjectURL(selectedImage.url); });
-await refreshArchive(); await route();
+// Navigation is independent of optional local storage, which can be blocked.
+await route(); void refreshArchive();

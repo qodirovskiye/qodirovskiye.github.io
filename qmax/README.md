@@ -24,6 +24,8 @@ The repository contains only application code, a public sample portrait, and the
 - Real Google MediaPipe landmark detection, running in a dedicated local worker.
 - 22 explained photo measurements, pose/framing heuristics, and landmark overlays.
 - Goal-specific styling/observation checklist, saved locally if requested.
+- Optional 18+ experimental aesthetic score with an openly stated rule-based rubric, coverage indicator, and explicit limits.
+- Source-linked AM/PM skin-care guidance selected from self-reported skin type and concerns, including pregnancy / prescription-treatment cautions.
 - Illustrative local appearance studio: gentle geometric image adjustments, lip-color overlay, two glasses-frame overlays, original/preview comparison, labeled PNG export.
 - Saved reports, checklist persistence, method-matched comparisons, JSON export, and browser print/PDF.
 - Responsive layouts and keyboard-accessible report tabs.
@@ -32,7 +34,7 @@ See [RESEARCH.md](./RESEARCH.md) for sources, feature mapping, and boundaries. T
 
 ## Privacy
 
-All photos are processed locally. The application only fetches its own static assets. Content Security Policy restricts network connections and scripts to the same origin. Optional saved reports include a photo preview and facial geometry in the current browser's IndexedDB. They do not sync. JSON exports omit the photo but still contain personal facial geometry.
+All photos are processed locally. The application only fetches its own static assets. Content Security Policy restricts network connections and scripts to the same origin. Optional saved reports include a photo preview and facial geometry in the current browser's IndexedDB. They do not sync. JSON exports omit the photo but still contain facial geometry and any optional self-reported skin-care preferences. These can include sensitive health-related answers; they stay on-device unless the visitor exports and shares them.
 
 ## Files
 
@@ -41,6 +43,7 @@ All photos are processed locally. The application only fetches its own static as
 - `measurements.js`: photo geometry, explanations, and exploration rules.
 - `visualize.js`: local illustrative preview controls.
 - `storage.js`: IndexedDB report storage.
+- `guidance.js`: transparent experimental aesthetic rubric and AAD-linked general skin-care routines.
 - `vendor/` and `models/`: pinned MediaPipe runtime and Google model.
 
 Runtime: `@mediapipe/tasks-vision@1.2.2`. Model: Google's Face Landmarker float16 version 1. See [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).
