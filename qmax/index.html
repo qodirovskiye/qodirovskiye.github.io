@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#142b26">
+  <meta name="description" content="Meet your face, in a little more detail. Free, private facial landmark analysis, clear measurements, and a personal styling notebook. All on your device.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self'; img-src 'self' blob: data:; connect-src 'self' blob:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <title>QMax — A clearer picture of you.</title>
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="wordmark" href="#home" aria-label="QMax home"><span class="brand-symbol">q</span>QMax</a>
+    <nav aria-label="Main navigation">
+      <a class="desktop-link" href="#approach">Our approach</a>
+      <a class="desktop-link" href="#how-it-works">How it works</a>
+      <a class="desktop-link" href="#faq">Questions</a>
+      <a class="report-nav" href="#reports">My reports <span id="report-count">0</span></a>
+      <a class="button small dark" href="#studio">Analyze my face <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <main id="main">
+    <div id="home-view">
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="live-dot"></span> YOUR FACE. A FRESH PERSPECTIVE.</div>
+          <h1>A clearer<br>picture of <em>you.</em></h1>
+          <p class="hero-description">Understand your features. Explore your proportions. Find a style that feels like you.</p>
+          <p class="hero-subcopy">Real facial analysis, right in your browser.<br>Always free. Entirely yours.</p>
+          <div class="hero-actions"><a class="button dark" href="#studio">Discover my features <span aria-hidden="true">↗</span></a><button class="text-button" data-action="sample">Explore a sample <span aria-hidden="true">→</span></button></div>
+          <div class="hero-footnote"><span class="lock-icon" aria-hidden="true">⌑</span> Your photo stays on your device. No account needed.</div>
+        </div>
+        <div class="hero-art">
+          <img class="hero-portrait" src="./assets/portrait.jpg" alt="Editorial portrait illustrating QMax facial mapping" width="1200" height="1200" fetchpriority="high">
+          <div class="portrait-shade"></div>
+          <svg class="hero-grid" viewBox="0 0 600 760" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width=".7"><ellipse cx="300" cy="318" rx="145" ry="195"/><path d="M155 318H445M300 123V513M176 222L422 411M424 220L177 414M160 274Q300 210 440 274M162 362Q300 425 440 362M202 169L213 445L300 513L385 445L398 169M155 318L300 123L445 318L300 513Z"/><path d="M213 274L263 280L300 365L337 280L385 274M245 415Q300 446 355 415M263 280L300 260L337 280"/></g><g fill="currentColor"><circle cx="300" cy="123" r="3"/><circle cx="155" cy="318" r="3"/><circle cx="445" cy="318" r="3"/><circle cx="300" cy="513" r="3"/><circle cx="263" cy="280" r="3"/><circle cx="337" cy="280" r="3"/><circle cx="300" cy="365" r="3"/></g></svg>
+          <div class="portrait-label"><span class="live-dot light"></span> A DIFFERENT KIND OF SELF-DISCOVERY</div>
+          <div class="floating-label top-label"><span class="tiny-cross">+</span><div>FACE MAPPING<small>478 model landmarks</small></div></div>
+          <div class="floating-label bottom-label"><span class="orb" aria-hidden="true">◉</span><div>Designed around you<small>No beauty score. Just perspective.</small></div></div>
+          <span class="portrait-caption">ILLUSTRATIVE MAPPING · TRY THE REAL ANALYSIS</span>
+        </div>
+      </section>
+      <div class="principles-strip"><span>UNDERSTAND, DON'T COMPARE.</span><span>ON-DEVICE ANALYSIS <i>↗</i></span><span>NO PHOTO UPLOADS <i>↗</i></span><span>FREE BY DESIGN <i>↗</i></span></div>
+      <section class="section approach" id="approach">
+        <div class="section-heading"><span class="eyebrow">01 / A MORE PERSONAL APPROACH</span><h2>There's more to your face<br>than a <em>number.</em></h2><p>Small details make you, you. QMax gives you a map of those details, with clear explanations instead of judgments.</p></div>
+        <div class="feature-grid">
+          <article class="feature"><div class="feature-art mapping-art"><svg viewBox="0 0 280 200" aria-hidden="true"><g fill="none" stroke="currentColor"><ellipse cx="140" cy="95" rx="54" ry="75"/><path d="M86 95H194M140 20V170M101 58L179 133M179 58L101 133M86 95L140 20L194 95L140 170ZM108 78Q118 69 130 78M150 78Q164 69 175 78M140 82L132 114H148M118 135Q140 148 162 135"/></g><g fill="currentColor"><circle cx="140" cy="20" r="3"/><circle cx="86" cy="95" r="3"/><circle cx="194" cy="95" r="3"/><circle cx="140" cy="170" r="3"/></g></svg><span class="art-tag">01 — MAP</span></div><h3>Meet your proportions</h3><p>Explore visible face height, feature spacing, and the relationships between your features.</p></article>
+          <article class="feature"><div class="feature-art detail-art"><span class="detail-eye" aria-hidden="true">◉</span><div class="mini-ruler"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="art-tag">02 — UNDERSTAND</span></div><h3>See the detail, clearly</h3><p>Inspect a real landmark overlay and discover exactly how each measurement is calculated.</p></article>
+          <article class="feature"><div class="feature-art notebook-art"><div class="mini-note"><span>YOUR EXPLORATION PLAN</span><div>◯ Find your frames</div><div>◯ Explore a new silhouette</div><div>◯ Take a consistent photo</div></div><span class="art-tag">03 — EXPLORE</span></div><h3>Make it your own</h3><p>Turn your preferences into a styling checklist. Save reports locally and compare your photos over time.</p></article>
+        </div>
+      </section>
+      <section class="how-section section" id="how-it-works"><div class="how-intro"><span class="eyebrow">02 / A FEW SIMPLE STEPS</span><h2>A little curiosity.<br><em>A new perspective.</em></h2><a class="button cream" href="#studio">Let's get started <span>↗</span></a></div><div class="steps"><article><span>01</span><div><h3>Bring a clear photo</h3><p>Face forward, use even light, and keep a relaxed expression. One person, one unfiltered photo.</p></div></article><article><span>02</span><div><h3>Let your device do the work</h3><p>A local model detects your facial landmarks. QMax calculates ratios from their positions.</p></div></article><article><span>03</span><div><h3>Explore your personal report</h3><p>View your map, read your measurements, and build a styling notebook at your own pace.</p></div></article></div></section>
+      <section class="section privacy-section"><span class="privacy-mark" aria-hidden="true">↗</span><div><span class="eyebrow">PRIVATE IS PERSONAL.</span><h2>Your face isn't<br><em>our data.</em></h2><p>The model runs on your device. Your photo is never sent to QMax, Google, or GitHub. Save it in this browser only if you choose, and remove it whenever you want.</p><a href="#methodology" class="underlined">Read how QMax works ↗</a></div><div class="privacy-details"><div><strong>0</strong><span>photos sent to a server</span></div><div><strong>100%</strong><span>analysis on your device</span></div><div><strong>You.</strong><span>in control of your reports</span></div></div></section>
+      <section class="section faq-section" id="faq"><div><span class="eyebrow">03 / GOOD QUESTIONS</span><h2>A little more<br><em>clarity.</em></h2></div><div class="faq-list">
+        <details><summary>What does QMax actually analyze?<span>+</span></summary><p>QMax detects facial landmarks using Google's MediaPipe Face Landmarker and calculates visible, two-dimensional proportions: face height-to-width, eye spacing, nose and mouth width, jaw width, and photo asymmetry. They describe this photo, not your value or attractiveness.</p></details>
+        <details><summary>Is this the same service as QOVES?<span>+</span></summary><p>No. QMax is an independent, free experimental project inspired by facial-analysis services. It is not affiliated with QOVES and does not use their private models, reference datasets, human reviewers, or medical protocols.</p></details>
+        <details><summary>Will it rate my attractiveness?<span>+</span></summary><p>No. QMax reports measurements and personal styling ideas. It has no validated demographic reference dataset and does not label your features as good, bad, or ideal.</p></details>
+        <details><summary>How accurate are the results?<span>+</span></summary><p>These are estimates from a single photo. Camera perspective, expression, lighting, hair, and head position affect the landmarks and ratios. Use consistent photos for comparison. Ratios are not physical millimeter measurements or clinical assessments.</p></details>
+        <details><summary>Where are my photos and reports stored?<span>+</span></summary><p>They stay in memory unless you choose to save the report on this device. Saved reports and a reduced-size preview go into this browser's local database. Clearing website data removes them. Reports do not sync between devices.</p></details>
+        <details><summary>Does QMax diagnose skin or suggest procedures?<span>+</span></summary><p>No. A face mesh cannot diagnose skin conditions, determine ethnicity or personality, prescribe treatments, or predict cosmetic results. QMax focuses on visible geometry and optional styling exploration.</p></details>
+      </div></section>
+      <section class="closing"><span class="eyebrow">YOUR NEXT CHAPTER STARTS WITH CURIOSITY.</span><h2>Get to know<br><em>your own face.</em></h2><a class="button dark" href="#studio">Start my free analysis <span>↗</span></a><p>No sign-up. No upload. No judgment.</p></section>
+    </div>
+    <section id="studio-view" class="workspace" hidden aria-labelledby="studio-heading">
+      <a class="back-link" href="#home">← Back to QMax</a>
+      <div class="workspace-top"><div><span class="eyebrow">YOUR PRIVATE ANALYSIS STUDIO</span><h1 id="studio-heading">Let's meet <em>your features.</em></h1><p>A single photo. A little context. A clearer picture.</p></div><span class="privacy-pill"><span class="live-dot"></span> Runs on your device</span></div>
+      <div class="studio-layout"><form id="analysis-form" class="upload-card">
+        <div class="card-topline"><span>01 / YOUR PHOTO</span><span>JPG, PNG, WEBP · UP TO 15 MB</span></div>
+        <label class="dropzone" id="dropzone" for="photo-input"><input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp"><span id="upload-empty"><span class="upload-icon" aria-hidden="true">↥</span><strong>Drop your photo here</strong><small>or choose a photo from your device</small><span class="choose-file">Choose photo ↗</span></span><img id="upload-preview" alt="Your selected photo" hidden><span class="change-photo" id="change-photo" hidden>Change photo ↗</span></label>
+        <div class="photo-tips"><span>✓ Face forward</span><span>✓ Even light</span><span>✓ Relaxed expression</span></div>
+        <div class="context-fields"><label for="report-name">Name your report <small>Optional</small></label><input id="report-name" maxlength="60" placeholder="My first analysis" autocomplete="off"><fieldset><legend>What would you like to explore?</legend><div class="goal-options"><label><input type="radio" name="goal" value="understand" checked><span>My proportions</span></label><label><input type="radio" name="goal" value="styling"><span>Hair & frames</span></label><label><input type="radio" name="goal" value="tracking"><span>Photo comparisons</span></label></div></fieldset><label class="check-label"><input type="checkbox" id="permission"><span>I have permission to use this photo.</span></label><label class="check-label"><input type="checkbox" id="save-report" checked><span>Save my report and a small photo preview in this browser.</span></label></div>
+        <div id="analysis-error" class="notice error" role="alert" hidden></div>
+        <button class="button dark full" id="analyze-button" type="submit">Analyze my photo <span>↗</span></button><button class="text-button sample-link" type="button" data-action="sample">Just looking? Try the sample portrait →</button>
+        <div id="analysis-progress" class="analysis-progress" role="status" aria-live="polite" hidden><div class="progress-orbit"></div><strong id="progress-title">Loading the local model…</strong><p id="progress-detail">Your photo stays right here.</p><button type="button" id="cancel-analysis" class="text-button">Cancel analysis</button></div>
+      </form><aside class="studio-aside"><span class="eyebrow">A GOOD PHOTO MAKES ALL THE DIFFERENCE</span><div class="photo-example"><img src="./assets/portrait.jpg" alt="Example of a forward-facing portrait with even lighting" width="420" height="420"><span>ONE FACE · CLEAR FEATURES</span></div><h3>A photo of you.<br>Not a performance.</h3><p>Use a straight-on photo with your head level. Keep your face unobstructed and avoid wide-angle close-ups.</p><div class="aside-note"><span>ⓘ</span><p>These measurements describe your photo. They're not a beauty rating, diagnosis, or prediction of how your face will change.</p></div></aside></div>
+    </section>
+    <section id="result-view" class="workspace" hidden aria-label="Your analysis report"></section>
+    <section id="reports-view" class="workspace" hidden aria-labelledby="reports-heading"><div class="workspace-top"><div><span class="eyebrow">YOUR PERSONAL ARCHIVE</span><h1 id="reports-heading">A little <em>perspective.</em></h1><p>Reports saved in this browser. Only on this device.</p></div><a class="button dark" href="#studio">New analysis ↗</a></div><div id="reports-list"></div></section>
+    <section id="methodology-view" class="workspace reading-page" hidden><a class="back-link" href="#home">← Back to QMax</a><span class="eyebrow">OPEN ABOUT OUR METHODS</span><h1>Measurements,<br><em>with context.</em></h1><p class="lead">QMax is a free, experimental tool for exploring visible facial geometry. Every result comes from the photo you supply.</p><h2>How it works</h2><p>Google MediaPipe Face Landmarker locates a mesh of 478 points. QMax converts their normalized coordinates to image pixels, compensates for in-plane head roll, and calculates two-dimensional ratios. No reference populations or attractiveness models are used.</p><h2>What is measured</h2><p>Visible face height versus cheek width, inner-eye spacing versus mean eye width, nose-to-mouth width, mouth-to-face width, jaw-to-cheek width, eye opening-to-width, midface-to-lower-face height, and a paired-landmark photo-asymmetry estimate. Face height begins at the upper face mesh boundary, not the hairline. Jaw points are surface landmarks, not bone measurements.</p><h2>Why context matters</h2><p>One photo is a perspective projection. Distance, lens, expression, head pose, occlusion, and model error change the result. QMax rejects multiple faces and strongly turned or tilted poses, and flags smaller issues. The quality rules are capture heuristics, not a validated accuracy score. Small differences between reports may be measurement noise.</p><h2>What the suggestions mean</h2><p>The exploration checklist is a transparent set of styling ideas based on your selected goal and measured ratios. It is not generated by a clinician or personal stylist and is not a treatment protocol. Measurements do not imply that a feature needs to change.</p><h2>Privacy, in practice</h2><p>The model, WebAssembly runtime, and example portrait are downloaded from this website. Your selected photo is processed locally in a dedicated worker. No analysis request or photo is sent to a server. Saved reports use IndexedDB in this browser. Hosting providers can still receive ordinary page and asset requests, including your IP address. There is no analytics, account system, or third-party script loaded from a CDN.</p><h2>Sources and credits</h2><p><a href="https://developers.google.com/edge/mediapipe/solutions/vision/face_landmarker" target="_blank" rel="noreferrer">Google MediaPipe Face Landmarker documentation ↗</a></p><p><a href="./RESEARCH.md">QOVES research and QMax feature scope ↗</a></p><p>Portrait: Unsplash. MediaPipe runtime: Apache-2.0. See <a href="./THIRD_PARTY_NOTICES.md">third-party notices</a>.</p><h2>Independent by design</h2><p>QMax is an independent educational project. It is not affiliated with QOVES, and it does not reproduce their proprietary models or claim equivalent service quality.</p></section>
+  </main>
+  <footer><a class="wordmark" href="#home"><span class="brand-symbol">q</span>QMax</a><p>A little clarity. A lot more you.</p><div><a href="#methodology">Methods & privacy</a><a href="#reports">My reports</a><span>Independent project · Not affiliated with QOVES</span></div></footer>
+  <div id="toast" role="status" aria-live="polite" hidden></div>
+  <dialog id="delete-dialog"><form method="dialog"><span class="eyebrow">YOUR DATA, YOUR CHOICE</span><h2>Remove this report?</h2><p>The report and its saved photo preview will be removed from this browser. Export a copy first if you'd like to keep it.</p><div class="dialog-actions"><button value="cancel" class="button outline">Keep report</button><button value="delete" class="button dark">Remove report</button></div></form></dialog>
+</body>
+</html>
