@@ -9,7 +9,7 @@ Status: implemented and compiled; catalog/index transforms and HEVC conversion v
 - The active `AllSpacesAndDisplays` selection has separate `Desktop` and `Idle` surfaces, both referring to provider `com.macwall.ogapps.extension` with configuration bytes `macwall`.
 - Apple's own existing selections use provider `com.apple.wallpaper.choice.aerials` and nested binary plist configuration with an `assetID` string.
 - The aerial catalog and downloaded videos live under `~/Library/Application Support/com.apple.wallpaper/aerials/`.
-- No installed application code, catalog wallpaper video, Apple movie, or MacWall file was copied into Qwall.
+- No MacWall executable code, Apple movie, or catalog wallpaper video is included in the public Qwall source or app download. User-selected downloaded videos may be saved separately in the private local library. Open-source fonts are redistributed with their original OFL notices.
 
 ## Design choice
 

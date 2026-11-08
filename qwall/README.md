@@ -1,6 +1,6 @@
 # Qwall
 
-An independent wallpaper gallery and native Mac companion. The website runs on GitHub Pages at `https://qodirovskiye.github.io/qwall/`.
+An independent wallpaper gallery and native Mac companion, with a cinematic interface and a private local video library. The website runs on GitHub Pages at `https://qodirovskiye.github.io/qwall/`.
 
 ## Use
 
@@ -17,7 +17,7 @@ The download is built for Apple silicon and macOS 15 or later. It is locally sig
 - Responsive gallery, categories, search, favorites, previews, pause/resume.
 - Local browser video library with IndexedDB persistence and removal.
 - Native desktop scene/video playback behind icons on one or all connected displays.
-- Native menu controls, battery/low-power/display-sleep pauses, and 15-minute scene rotation.
+- Native menu controls, adjustable playback speed and sound, display selection, battery/low-power/display-sleep pauses, and persistent 15-minute scene rotation. The installed gallery also exposes these companion settings.
 - Experimental Lock Screen and screen saver registration on macOS 26 and 27, using new Qwall entries in the per-user aerial catalog.
 - Exact before/after backups for system wallpaper changes; restore avoids overwriting subsequent external edits.
 
@@ -33,4 +33,4 @@ Install Xcode or matching Command Line Tools, then run `bash build.sh` from this
 
 Run the built executable with `--smoke-test --no-gallery` for the desktop render check or `--export-test --no-gallery` for the six-second scene export check. These checks need a logged-in graphical Mac session and access to macOS video services. Pure wallpaper-selection fixtures are in `tests/`.
 
-All generated scenes and Qwall source are original. Architecture references and runtime limitations are documented in `research/system-wallpaper.md`; local REA metadata is kept separately and is not published.
+Generated scenes and Qwall application source are original. Bundled Geist and Averia Serif Libre fonts retain their SIL Open Font License notices in `web/fonts/`. Personal wallpaper files are stored separately and are not included in the public site or app download. Architecture references and runtime limitations are documented in `research/system-wallpaper.md`; local REA metadata is kept separately and is not published.

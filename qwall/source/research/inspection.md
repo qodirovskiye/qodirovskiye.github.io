@@ -10,9 +10,9 @@ Native function analysis returned `provider_unavailable`: no Hopper, Ghidra, IDA
 
 - Frontend JavaScript syntax checks passed.
 - All eight procedural renderers exercised at multiple time values.
-- Browser visual preview checked at desktop size; search `ocean` finds Blue hour; favorite persists across reload; preview pause toggles correctly.
+- Refreshed interface checked in the browser at desktop/tablet width, 375px portrait and 812×375 landscape. Actual Formula One video playback, preview pause/speed, favorites, destination selection, settings, and return transitions passed. Existing IndexedDB imports remained available.
 - Qwall's signed native bundle compiled with the macOS SDK.
-- Actual native desktop WebKit smoke test returned renderer ready and canvas width 2940 on this Mac.
+- Actual native desktop WebKit smoke test returned renderer ready and canvas width 2940 on this Mac. The refreshed installed gallery loaded seven local video cards; all seven reached video metadata ready, and the native status bridge was present.
 - Actual scene-to-movie export produced a six-second playable video successfully.
 - Pure target transforms preserve the opposing wallpaper surface, original catalog entries, unrelated metadata, and escaped file URLs; invalid destinations are rejected.
 - Generated video converted to HEVC Main10 and all output frames decoded as 10-bit video by the macOS encoder test.

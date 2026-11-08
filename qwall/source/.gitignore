@@ -1,0 +1,5 @@
+build/
+research/macwall-evidence.json
+personal-wallpapers/
+web/downloads
+.DS_Store

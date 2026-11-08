@@ -12,6 +12,8 @@ enum QwallError: LocalizedError {
 struct WallpaperSelection: Codable {
     var scene: String?
     var file: String?
+    var title: String?
+    var localId: String?
 }
 
 @MainActor final class DesktopSurface {
@@ -56,8 +58,10 @@ struct WallpaperSelection: Codable {
         window.orderBack(nil)
     }
 
-    func pause(_ paused: Bool) {
-        if paused { player?.pause() } else { player?.play() }
+    func pause(_ paused: Bool, speed: Double = 1, muted: Bool = true) {
+        player?.isMuted = muted
+        if paused { player?.pause() } else { player?.playImmediately(atRate: Float(speed)) }
+        web?.evaluateJavaScript("window.setSpeed && window.setSpeed(\(speed))", completionHandler: nil)
         web?.evaluateJavaScript("window.setPaused(\(paused ? "true" : "false"))", completionHandler: nil)
     }
 
@@ -151,6 +155,8 @@ struct WallpaperSelection: Codable {
     var galleryWeb: WKWebView?
     var current: WallpaperSelection?
     var paused = false
+    var speed = 1.0
+    var muted = true
     var suspended = false
     var pauseOnBattery = true
     var rotate = false
@@ -168,6 +174,10 @@ struct WallpaperSelection: Codable {
         status.button?.title = "◒"
         status.button?.toolTip = "Qwall — Live wallpapers"
         pauseOnBattery = defaults.object(forKey: "pauseOnBattery") as? Bool ?? true
+        speed = defaults.object(forKey: "speed") as? Double ?? 1
+        muted = defaults.object(forKey: "muted") as? Bool ?? true
+        let savedDisplay = defaults.integer(forKey: "display")
+        targetScreen = defaults.object(forKey: "display") != nil && savedDisplay >= 0 && savedDisplay < NSScreen.screens.count ? savedDisplay : nil
         if let data = defaults.data(forKey: "desktop"), let selection = try? JSONDecoder().decode(WallpaperSelection.self, from: data) {
             current = selection
             if let file = selection.file, !FileManager.default.fileExists(atPath: file) { current = nil }
@@ -181,6 +191,7 @@ struct WallpaperSelection: Codable {
         DistributedNotificationCenter.default().addObserver(self, selector: #selector(screenUnlocked), name: NSNotification.Name("com.apple.screenIsUnlocked"), object: nil)
         if current != nil { rebuildScreens() }
         timer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in Task { @MainActor in self?.updatePlayback() } }
+        if defaults.bool(forKey: "rotation") { toggleRotation() }
         if CommandLine.arguments.contains("--smoke-test") { smokeTest(); return }
         if CommandLine.arguments.contains("--export-test") { exportTest(); return }
         if CommandLine.arguments.contains("--gallery-test") { galleryTest(); return }
@@ -191,10 +202,14 @@ struct WallpaperSelection: Codable {
         for url in urls { handle(url) }
     }
 
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool { openGallery(); return true }
+
     func handle(_ url: URL) {
         guard url.scheme == "qwall", let action = url.host,
               let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return }
         let query = Dictionary(components.queryItems?.map { ($0.name, $0.value ?? "") } ?? [], uniquingKeysWith: { first, _ in first })
+        if action == "status" { sendStatus(); return }
+        if action == "control" { control(query); return }
         let target = query["target"] ?? "desktop"
         guard ["desktop", "lock", "both"].contains(target) else { showError("Choose Desktop, Lock Screen, or Both."); return }
         guard !busy else { showError("A wallpaper is still being prepared. Please wait for it to finish."); return }
@@ -202,10 +217,92 @@ struct WallpaperSelection: Codable {
         case "apply":
             guard let scene = query["scene"], Self.scenes.contains(scene) else { showError("That wallpaper is not in the Qwall library."); return }
             Task { await apply(WallpaperSelection(scene: scene), target: target) }
-        case "import": chooseVideo(target: target)
+        case "import":
+            let matches = localLibrary().filter { ($0["name"] as? String)?.localizedCaseInsensitiveCompare(query["name"] ?? "") == .orderedSame }
+            if matches.count == 1, let id = matches[0]["nativeId"] as? String, let selection = localSelection(id: id) {
+                Task { await apply(selection, target: target) }
+            } else { chooseVideo(target: target) }
+        case "apply-local":
+            guard let id = query["id"], let selection = localSelection(id: id) else { showError("This video is no longer in Qwall's local library. Import the file again."); return }
+            Task { await apply(selection, target: target) }
         case "gallery": openGallery()
         default: showError("This Qwall link is not supported.")
         }
+    }
+
+    func control(_ query: [String: String]) {
+        let enabled = query["enabled"] == "1"
+        switch query["action"] {
+        case "pause": paused = true; updatePlayback(); makeMenu()
+        case "resume": paused = false; updatePlayback(); makeMenu()
+        case "next": if !busy { nextScene() }
+        case "stop": if !busy { stopDesktop() }
+        case "restore": if !busy { restoreSystem() }
+        case "battery": if pauseOnBattery != enabled { toggleBattery() }
+        case "rotation": if rotate != enabled { toggleRotation() }
+        case "mute": muted = enabled; defaults.set(muted, forKey: "muted"); updatePlayback(); makeMenu()
+        case "speed":
+            if let value = Double(query["value"] ?? ""), [0.5, 0.75, 1, 1.25, 1.5, 2].contains(value) {
+                speed = value; defaults.set(speed, forKey: "speed"); updatePlayback(); makeMenu()
+            }
+        case "display":
+            if let value = Int(query["index"] ?? ""), value == -1 || (0..<NSScreen.screens.count).contains(value) {
+                targetScreen = value == -1 ? nil : value; defaults.set(value, forKey: "display"); rebuildScreens()
+            }
+        default: break
+        }
+        sendStatus()
+    }
+
+    func sendStatus() {
+        let info: [String: Any] = ["paused": paused, "rotation": rotate, "pauseOnBattery": pauseOnBattery,
+                                 "muted": muted, "speed": speed, "scene": current?.scene ?? "",
+                                 "hasDesktop": current != nil, "title": current?.title ?? current?.scene ?? "", "libraryCount": localLibrary().count,
+                                 "displays": NSScreen.screens.map(\.localizedName),
+                                 "displayIndex": targetScreen.map { $0 as Any } ?? NSNull(), "busy": busy]
+        guard let json = try? JSONSerialization.data(withJSONObject: info), let string = String(data: json, encoding: .utf8) else { return }
+        galleryWeb?.evaluateJavaScript("window.QWALL_NATIVE_STATUS=\(string);window.dispatchEvent(new CustomEvent('qwall-native-status',{detail:window.QWALL_NATIVE_STATUS}));", completionHandler: nil)
+    }
+
+    func localLibrary() -> [[String: Any]] {
+        guard let bytes = try? Data(contentsOf: dataRoot.appendingPathComponent("private-library.json")),
+              let entries = try? JSONSerialization.jsonObject(with: bytes) as? [[String: Any]] else { return [] }
+        let media = dataRoot.appendingPathComponent("Media", isDirectory: true)
+        return entries.compactMap { entry in
+            guard let id = entry["id"] as? String, UUID(uuidString: id) != nil,
+                  let filename = entry["filename"] as? String, (filename as NSString).lastPathComponent == filename,
+                  !filename.hasPrefix("."), let name = entry["name"] as? String else { return nil }
+            let video = media.appendingPathComponent(filename)
+            guard FileManager.default.fileExists(atPath: video.path), video.resolvingSymlinksInPath().deletingLastPathComponent().path == media.resolvingSymlinksInPath().path else { return nil }
+            return ["id": "macwall-\(id)", "nativeId": id, "name": name,
+                    "category": entry["category"] as? String ?? "Your video", "mood": "Saved on this Mac",
+                    "description": "A video in your private Qwall library. Stored on this Mac.",
+                    "resolution": entry["resolution"] as? String ?? "", "duration": entry["duration"] as? String ?? "",
+                    "bytes": entry["bytes"] as? Int ?? 0,
+                    "videoURL": video.absoluteString]
+        }
+    }
+
+    func localSelection(id: String) -> WallpaperSelection? {
+        guard let entry = localLibrary().first(where: { ($0["nativeId"] as? String)?.lowercased() == id.lowercased() }),
+              let string = entry["videoURL"] as? String, let url = URL(string: string) else { return nil }
+        return WallpaperSelection(file: url.path, title: entry["name"] as? String, localId: id.lowercased())
+    }
+
+    func prepareGalleryResources() throws -> URL {
+        guard let source = Bundle.main.resourceURL?.appendingPathComponent("web"),
+              let enumerator = FileManager.default.enumerator(at: source, includingPropertiesForKeys: [.isRegularFileKey]) else { throw QwallError.message("The bundled gallery could not be found.") }
+        let target = dataRoot.appendingPathComponent("Gallery", isDirectory: true)
+        try FileManager.default.createDirectory(at: target, withIntermediateDirectories: true)
+        for case let file as URL in enumerator {
+            guard (try file.resourceValues(forKeys: [.isRegularFileKey])).isRegularFile == true else { continue }
+            let relative = String(file.path.dropFirst(source.path.count + 1))
+            let destination = target.appendingPathComponent(relative)
+            try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
+            let bytes = try Data(contentsOf: file)
+            if (try? Data(contentsOf: destination)) != bytes { try bytes.write(to: destination, options: .atomic) }
+        }
+        return target
     }
 
     func makeMenu() {
@@ -223,9 +320,18 @@ struct WallpaperSelection: Codable {
         item("Choose video for desktop…", #selector(importDesktop))
         item("Choose video for Lock Screen…", #selector(importLock))
         item("Choose video for both…", #selector(importBoth))
+        item(muted ? "Enable wallpaper sound" : "Mute wallpaper sound", #selector(toggleMute))
+        let speedItem = NSMenuItem(title: "Playback speed", action: nil, keyEquivalent: "")
+        let speedMenu = NSMenu()
+        for value in [0.5, 0.75, 1.0, 1.25, 1.5, 2.0] {
+            let option = NSMenuItem(title: "\(value)×", action: #selector(selectSpeed(_:)), keyEquivalent: "")
+            option.target = self; option.representedObject = NSNumber(value: value); option.state = speed == value ? .on : .off
+            speedMenu.addItem(option)
+        }
+        speedItem.submenu = speedMenu; menu.addItem(speedItem)
         menu.addItem(.separator())
         item("Pause on battery", #selector(toggleBattery)).state = pauseOnBattery ? .on : .off
-        item("Rotate scenes every 15 minutes", #selector(toggleRotation)).state = rotate ? .on : .off
+        item("Rotate library every 15 minutes", #selector(toggleRotation)).state = rotate ? .on : .off
         let screensItem = NSMenuItem(title: "Display", action: nil, keyEquivalent: "")
         let screensMenu = NSMenu()
         let all = NSMenuItem(title: "All displays", action: #selector(selectScreen(_:)), keyEquivalent: "")
@@ -240,6 +346,7 @@ struct WallpaperSelection: Codable {
         item("Restore previous system wallpaper", #selector(restoreSystem))
         item("Quit Qwall", #selector(quit), key: "q")
         status.menu = menu
+        sendStatus()
     }
 
     @objc func openGallery() {
@@ -248,19 +355,26 @@ struct WallpaperSelection: Codable {
         window.title = "Qwall"
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 700, height: 500)
-        let view = WKWebView(frame: NSRect(origin: .zero, size: window.contentLayoutRect.size))
+        let configuration = WKWebViewConfiguration()
+        let libraryData = (try? JSONSerialization.data(withJSONObject: localLibrary())) ?? Data("[]".utf8)
+        let libraryJSON = String(data: libraryData, encoding: .utf8) ?? "[]"
+        configuration.userContentController.addUserScript(WKUserScript(source: "window.QWALL_IS_NATIVE=true;window.QWALL_LOCAL_LIBRARY=\(libraryJSON);", injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        let view = WKWebView(frame: NSRect(origin: .zero, size: window.contentLayoutRect.size), configuration: configuration)
         view.autoresizingMask = [.width, .height]
         view.navigationDelegate = self
         window.contentView = view
         galleryWeb = view
-        if let root = Bundle.main.resourceURL?.appendingPathComponent("web"), FileManager.default.fileExists(atPath: root.appendingPathComponent("index.html").path) {
-            view.loadFileURL(root.appendingPathComponent("index.html"), allowingReadAccessTo: root)
-        } else {
-            showGalleryFailure("Qwall's bundled gallery is missing. Rebuild the Mac companion or open the online gallery.")
-        }
+        do {
+            let root = try prepareGalleryResources()
+            view.loadFileURL(root.appendingPathComponent("index.html"), allowingReadAccessTo: dataRoot)
+        } catch { showGalleryFailure(error.localizedDescription) }
         window.center(); window.makeKeyAndOrderFront(nil)
         gallery = window
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        if webView === galleryWeb { sendStatus() }
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
@@ -310,7 +424,7 @@ struct WallpaperSelection: Codable {
                 try FileManager.default.createDirectory(at: media, withIntermediateDirectories: true)
                 let destination = media.appendingPathComponent(UUID().uuidString).appendingPathExtension(url.pathExtension)
                 try FileManager.default.copyItem(at: url, to: destination)
-                await apply(WallpaperSelection(file: destination.path), target: target)
+                await apply(WallpaperSelection(file: destination.path, title: url.deletingPathExtension().lastPathComponent), target: target)
             } catch { showError(error.localizedDescription) }
         }
     }
@@ -363,20 +477,34 @@ struct WallpaperSelection: Codable {
     }
     func updatePlayback() {
         let stop = paused || suspended || (pauseOnBattery && onBattery()) || ProcessInfo.processInfo.isLowPowerModeEnabled
-        surfaces.forEach { $0.pause(stop) }
+        surfaces.forEach { $0.pause(stop, speed: speed, muted: muted) }
+        sendStatus()
     }
     @objc func togglePause() { paused.toggle(); updatePlayback(); makeMenu() }
     @objc func toggleBattery() { pauseOnBattery.toggle(); defaults.set(pauseOnBattery, forKey: "pauseOnBattery"); updatePlayback(); makeMenu() }
+    @objc func toggleMute() { muted.toggle(); defaults.set(muted, forKey: "muted"); updatePlayback(); makeMenu() }
+    @objc func selectSpeed(_ sender: NSMenuItem) {
+        guard let value = sender.representedObject as? NSNumber else { return }
+        speed = value.doubleValue; defaults.set(speed, forKey: "speed"); updatePlayback(); makeMenu()
+    }
     @objc func nextScene() {
+        let library = localLibrary()
+        if !library.isEmpty, current?.file != nil {
+            let index = library.firstIndex(where: { ($0["nativeId"] as? String)?.lowercased() == current?.localId?.lowercased() }) ?? -1
+            if let id = library[(index + 1) % library.count]["nativeId"] as? String, let selection = localSelection(id: id) {
+                Task { await apply(selection, target: "desktop") }; return
+            }
+        }
         let next = ((Self.scenes.firstIndex(of: current?.scene ?? "") ?? -1) + 1) % Self.scenes.count
         Task { await apply(WallpaperSelection(scene: Self.scenes[next]), target: "desktop") }
     }
     @objc func toggleRotation() {
         rotate.toggle(); rotationTimer?.invalidate(); rotationTimer = nil
+        defaults.set(rotate, forKey: "rotation")
         if rotate { rotationTimer = Timer.scheduledTimer(withTimeInterval: 900, repeats: true) { [weak self] _ in Task { @MainActor in self?.nextScene() } } }
         makeMenu()
     }
-    @objc func selectScreen(_ sender: NSMenuItem) { targetScreen = sender.tag == -1 ? nil : sender.tag; rebuildScreens() }
+    @objc func selectScreen(_ sender: NSMenuItem) { targetScreen = sender.tag == -1 ? nil : sender.tag; defaults.set(sender.tag, forKey: "display"); rebuildScreens() }
     @objc func stopDesktop() { current = nil; defaults.removeObject(forKey: "desktop"); rebuildScreens() }
     @objc func restoreSystem() {
         do { try SystemWallpaper.restore(); showInfo("Previous wallpaper restored", "Your saved macOS wallpaper settings have been restored.") }
@@ -409,8 +537,9 @@ struct WallpaperSelection: Codable {
             for attempt in 0..<30 {
                 do {
                     guard let view = galleryWeb else { throw QwallError.message("No gallery web view was created.") }
-                    let result = try await view.evaluateJavaScript("({title:document.title,url:location.href,ready:document.readyState,cards:document.querySelectorAll('.wallpaper-card').length,scenes:!!window.QwallScenes,width:innerWidth,height:innerHeight})")
-                    if let info = result as? [String: Any], let count = info["cards"] as? Int, count == 8,
+                    let result = try await view.evaluateJavaScript("({title:document.title,url:location.href,ready:document.readyState,cards:document.querySelectorAll('.wallpaper-card').length,scenes:!!window.QwallScenes,native:window.QWALL_IS_NATIVE===true,status:!!window.QWALL_NATIVE_STATUS,localVideos:(window.QWALL_LOCAL_LIBRARY||[]).length,loadedVideos:[...document.querySelectorAll('.wallpaper-card video')].filter(v=>v.readyState>=1).length,width:innerWidth,height:innerHeight})")
+                    if let info = result as? [String: Any], let count = info["cards"] as? Int, count >= 1,
+                       (info["localVideos"] as? Int ?? 0) == 0 || (info["loadedVideos"] as? Int ?? 0) > 0,
                        let width = info["width"] as? Int, width > 600 {
                         print("GALLERY OK: \(info)")
                         NSApp.terminate(nil); return
