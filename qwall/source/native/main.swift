@@ -158,7 +158,7 @@ struct WallpaperSelection: Codable {
     var speed = 1.0
     var muted = true
     var suspended = false
-    var pauseOnBattery = true
+    var pauseOnBattery = false
     var rotate = false
     var busy = false
     var targetScreen: Int?
@@ -173,7 +173,7 @@ struct WallpaperSelection: Codable {
         status = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         status.button?.title = "◒"
         status.button?.toolTip = "Qwall — Live wallpapers"
-        pauseOnBattery = defaults.object(forKey: "pauseOnBattery") as? Bool ?? true
+        pauseOnBattery = defaults.object(forKey: "pauseOnBattery") as? Bool ?? false
         speed = defaults.object(forKey: "speed") as? Double ?? 1
         muted = defaults.object(forKey: "muted") as? Bool ?? true
         let savedDisplay = defaults.integer(forKey: "display")
@@ -195,6 +195,7 @@ struct WallpaperSelection: Codable {
         if CommandLine.arguments.contains("--smoke-test") { smokeTest(); return }
         if CommandLine.arguments.contains("--export-test") { exportTest(); return }
         if CommandLine.arguments.contains("--gallery-test") { galleryTest(); return }
+        if CommandLine.arguments.contains("--desktop-playback-test") { desktopPlaybackTest(); return }
         if !CommandLine.arguments.contains("--no-gallery") { openGallery() }
     }
 
@@ -255,7 +256,9 @@ struct WallpaperSelection: Codable {
     }
 
     func sendStatus() {
+        let pauseReason = playbackPauseReason()
         let info: [String: Any] = ["paused": paused, "rotation": rotate, "pauseOnBattery": pauseOnBattery,
+                                 "effectivePaused": pauseReason != nil, "pauseReason": pauseReason ?? "",
                                  "muted": muted, "speed": speed, "scene": current?.scene ?? "",
                                  "hasDesktop": current != nil, "title": current?.title ?? current?.scene ?? "", "libraryCount": localLibrary().count,
                                  "displays": NSScreen.screens.map(\.localizedName),
@@ -476,9 +479,16 @@ struct WallpaperSelection: Codable {
         return (type as String) == kIOPSBatteryPowerValue
     }
     func updatePlayback() {
-        let stop = paused || suspended || (pauseOnBattery && onBattery()) || ProcessInfo.processInfo.isLowPowerModeEnabled
+        let stop = playbackPauseReason() != nil
         surfaces.forEach { $0.pause(stop, speed: speed, muted: muted) }
         sendStatus()
+    }
+    func playbackPauseReason() -> String? {
+        if paused { return "Paused" }
+        if suspended { return "Paused while the screen is asleep or locked" }
+        if pauseOnBattery && onBattery() { return "Paused on battery — turn off Pause on battery to keep motion playing" }
+        if pauseOnBattery && ProcessInfo.processInfo.isLowPowerModeEnabled { return "Paused for Low Power Mode — turn off Pause on battery to keep motion playing" }
+        return nil
     }
     @objc func togglePause() { paused.toggle(); updatePlayback(); makeMenu() }
     @objc func toggleBattery() { pauseOnBattery.toggle(); defaults.set(pauseOnBattery, forKey: "pauseOnBattery"); updatePlayback(); makeMenu() }
@@ -528,6 +538,36 @@ struct WallpaperSelection: Codable {
                 print("SMOKE: \(String(describing: result))")
                 surface.close()
             } catch { print("SMOKE FAIL: \(error)") }
+            NSApp.terminate(nil)
+        }
+    }
+    func desktopPlaybackTest() {
+        Task {
+            if current?.file == nil, let entry = localLibrary().first, let id = entry["nativeId"] as? String, let selection = localSelection(id: id) {
+                current = selection; rebuildScreens()
+            }
+            guard let surface = surfaces.first, let player = surface.player else {
+                print("DESKTOP PLAYBACK FAIL: no desktop video player"); NSApp.terminate(nil); return
+            }
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            let start = player.currentTime().seconds
+            let initialRate = player.rate
+            let quick = CommandLine.arguments.contains("--quick")
+            let duration = player.currentItem?.duration.seconds ?? 30
+            let seconds = quick ? 4.0 : min(45, max(8, duration.isFinite ? duration + 3 : 35))
+            try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+            let end = player.currentTime().seconds
+            let loops = surface.looper?.loopCount ?? 0
+            let moving = initialRate > 0 && player.rate > 0 && (abs(end - start) > 1 || loops > 0)
+            let passed = moving && (quick || loops > 0)
+            let result: [String: Any] = ["passed": passed, "battery": onBattery(), "pauseOnBattery": pauseOnBattery,
+                "initialRate": initialRate, "finalRate": player.rate, "startSeconds": start.isFinite ? start : -1,
+                "endSeconds": end.isFinite ? end : -1, "loops": loops, "durationSeconds": duration.isFinite ? duration : -1,
+                "windowVisible": surface.window.isVisible, "windowLevel": surface.window.level.rawValue]
+            if let data = try? JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys]) {
+                try? data.write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("qwall-desktop-playback-test.json"))
+            }
+            print("DESKTOP PLAYBACK \(passed ? "PASS" : "FAIL"): \(result)")
             NSApp.terminate(nil)
         }
     }

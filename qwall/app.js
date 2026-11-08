@@ -437,8 +437,9 @@ function nativeCommand(action, parameters = {}) {
 function updateNativeStatus(detail) {
   if (!isNative || !detail || typeof detail !== 'object') return;
   state.native = detail;
-  const scene = QwallScenes.data.find(item => item.id === detail.scene)?.name || (detail.scene ? 'Your wallpaper' : null);
-  $('nativeStatusText').textContent = detail.busy ? 'Preparing your wallpaper…' : detail.hasDesktop ? `${scene || 'Wallpaper'} · ${detail.paused ? 'Paused' : 'Playing on your desktop'}` : 'No desktop wallpaper is playing.';
+  const scene = detail.title || QwallScenes.data.find(item => item.id === detail.scene)?.name || (detail.scene ? 'Your wallpaper' : null);
+  const playback = detail.pauseReason || (detail.effectivePaused || detail.paused ? 'Paused' : 'Playing on your desktop');
+  $('nativeStatusText').textContent = detail.busy ? 'Preparing your wallpaper…' : detail.hasDesktop ? `${scene || 'Wallpaper'} · ${playback}` : 'No desktop wallpaper is playing.';
   $('nativePause').innerHTML = `${icon(detail.paused ? 'play' : 'pause')}<span>${detail.paused ? 'Resume' : 'Pause'}</span>`;
   $('nativeMuted').checked = detail.muted !== false; $('nativeBattery').checked = Boolean(detail.pauseOnBattery); $('nativeRotation').checked = Boolean(detail.rotation);
   $('nativeSpeed').value = String(detail.speed || 1);
