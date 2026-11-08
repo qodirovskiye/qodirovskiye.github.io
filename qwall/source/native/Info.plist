@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleName</key><string>Qwall</string>
+<key>CFBundleDisplayName</key><string>Qwall</string>
+<key>CFBundleIdentifier</key><string>io.github.qodirovskiye.qwall</string>
+<key>CFBundleExecutable</key><string>Qwall</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleShortVersionString</key><string>0.1.0</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>LSMinimumSystemVersion</key><string>15.0</string>
+<key>LSUIElement</key><true/>
+<key>NSHighResolutionCapable</key><true/>
+<key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>Qwall wallpapers</string><key>CFBundleURLSchemes</key><array><string>qwall</string></array></dict></array>
+<key>NSHumanReadableCopyright</key><string>Copyright 2026 Qwall contributors</string>
+</dict></plist>

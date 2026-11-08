@@ -1,0 +1,11 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#060b17}canvas{display:block;width:100%;height:100%}</style></head><body><canvas></canvas><script src="scenes.js"></script><script>
+const args = new URLSearchParams(location.search), canvas = document.querySelector('canvas');
+const native = window.QWALL_NATIVE || {}, scene = native.scene || args.get('scene') || 'aurora';
+let paused = false, raf, elapsed = 0, previous = 0;
+function resize(){canvas.width = Math.round(innerWidth * Math.min(devicePixelRatio, 1.5));canvas.height = Math.round(innerHeight * Math.min(devicePixelRatio, 1.5));}
+addEventListener('resize', resize);resize();
+window.renderFrame = function(t){window.QwallScenes.render(canvas,scene,t);return true;};
+function tick(now){if(!paused){elapsed += previous ? Math.min((now-previous)/1000,.1):0;renderFrame(elapsed);}previous=now;raf=requestAnimationFrame(tick);}
+window.setPaused = function(value){paused=value;};
+renderFrame(0);if(!native.export && !args.has('export'))raf=requestAnimationFrame(tick);
+</script></body></html>
