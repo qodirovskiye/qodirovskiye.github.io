@@ -254,7 +254,14 @@ function updateTarget() {
     button.classList.toggle('active', active); button.setAttribute('aria-pressed', String(active));
   });
   $('lockExperimentalHint').hidden = state.target === 'desktop';
-  $('applyButton').querySelector('use').setAttribute('href', state.target === 'lock' ? '#i-lock' : '#i-monitor');
+  const item = state.selected;
+  const desktop = state.native;
+  const applied = state.target === 'desktop' && desktop?.hasDesktop && !desktop.paused && item &&
+    (item.nativeId ? item.nativeId.toLowerCase() === desktop.localId?.toLowerCase() : !item.blob && item.id === desktop.scene);
+  const preparing = Boolean(desktop?.busy);
+  $('applyButton').disabled = preparing || Boolean(applied);
+  $('applyButton').querySelector('use').setAttribute('href', applied ? '#i-check' : state.target === 'lock' ? '#i-lock' : '#i-monitor');
+  $('applyLabel').textContent = preparing ? 'Preparing wallpaper…' : applied ? 'On your desktop' : 'Set Wallpaper';
 }
 function detailElements() { return [$('detailTopbar') || document.querySelector('.detail-topbar'), document.querySelector('.preview-body'), $('moreButton')]; }
 function cardClip(rect) {
@@ -280,7 +287,7 @@ function openPreview(item, origin) {
   $('downloadWallpaper').title = item.blob ? 'Download original video' : 'Save preview image';
   $('shareButton').hidden = isVideo(item);
   $('downloadWallpaper').hidden = Boolean(item.nativeId);
-  $('nativeNote').replaceChildren(document.createTextNode(item.nativeId ? 'Saved on this Mac. Ready to apply directly.' : item.blob ? 'Uses your Mac library, or asks for the original video. ' : isNative ? 'Applies this scene with your Mac companion.' : 'Opens Qwall for Mac to apply this scene. '));
+  $('nativeNote').replaceChildren(document.createTextNode(item.nativeId ? 'Saved on this Mac. Ready to apply directly.' : item.blob ? 'Choose your original video in Qwall for Mac. ' : isNative ? 'Applies this scene with your Mac companion.' : 'Opens Qwall for Mac to apply this scene. '));
   if (!isNative) { const link = document.createElement('a'); link.href = 'downloads/Qwall.zip'; link.download = ''; link.textContent = 'Get the companion'; $('nativeNote').append(link); }
   updateDetailFavorite(); updatePreviewPlayback(); updatePreviewMetadata(); updateTarget();
   $('relatedPanel').hidden = true; $('moreButton').setAttribute('aria-expanded', 'false');
@@ -324,7 +331,7 @@ function applyWallpaper() {
   if (!state.selected) return;
   const item = state.selected;
   window.location.href = item.nativeId ? `qwall://apply-local?id=${encodeURIComponent(item.nativeId)}&target=${encodeURIComponent(state.target)}` : item.blob ? `qwall://import?target=${encodeURIComponent(state.target)}&name=${encodeURIComponent(item.name)}` : `qwall://apply?scene=${encodeURIComponent(item.id)}&target=${encodeURIComponent(state.target)}`;
-  if (!isNative) toast(item.blob ? 'Opening Qwall for Mac. A matching saved video applies directly.' : 'Opening Qwall for Mac. If nothing opens, install the companion first.');
+  if (!isNative) toast(item.blob ? 'Opening Qwall for Mac to choose your original video.' : 'Opening Qwall for Mac. If nothing opens, install the companion first.');
 }
 function saveBlob(blob, filename) {
   const url = URL.createObjectURL(blob), link = document.createElement('a');
@@ -442,6 +449,10 @@ function updateNativeStatus(detail) {
   $('nativeStatusText').textContent = detail.busy ? 'Preparing your wallpaper…' : detail.hasDesktop ? `${scene || 'Wallpaper'} · ${playback}` : 'No desktop wallpaper is playing.';
   $('nativePause').innerHTML = `${icon(detail.paused ? 'play' : 'pause')}<span>${detail.paused ? 'Resume' : 'Pause'}</span>`;
   $('nativeMuted').checked = detail.muted !== false; $('nativeBattery').checked = Boolean(detail.pauseOnBattery); $('nativeRotation').checked = Boolean(detail.rotation);
+  $('nativeLid').checked = Boolean(detail.lidFold);
+  $('nativeLidHelp').textContent = detail.lidSensorActive
+    ? 'The hinge sensor is active on your built-in display.'
+    : 'Requires a compatible hinge sensor and a wallpaper on your built-in display.';
   $('nativeSpeed').value = String(detail.speed || 1);
   const display = $('nativeDisplay'), selected = detail.displayIndex == null ? '-1' : String(detail.displayIndex);
   display.replaceChildren(new Option('All displays', '-1'));
@@ -449,6 +460,7 @@ function updateNativeStatus(detail) {
   display.value = selected;
   document.querySelectorAll('#nativeControls button, #nativeControls input, #nativeControls select').forEach(control => control.disabled = Boolean(detail.busy));
   [$('nativePause'), $('nativeNext'), $('nativeStop')].forEach(control => control.disabled = Boolean(detail.busy) || !detail.hasDesktop);
+  if (state.selected) updateTarget();
 }
 
 $('search').addEventListener('input', event => { state.search = event.target.value; $('hero').hidden = state.view !== 'discover' || Boolean(state.search); renderGrid(); });
@@ -517,6 +529,7 @@ if (isNative) {
   $('nativeStop').addEventListener('click', () => nativeCommand('stop'));
   $('nativeRestore').addEventListener('click', () => nativeCommand('restore'));
   $('nativeBattery').addEventListener('change', event => nativeCommand('battery', { enabled: event.target.checked ? '1' : '0' }));
+  $('nativeLid').addEventListener('change', event => nativeCommand('lid', { enabled: event.target.checked ? '1' : '0' }));
   $('nativeRotation').addEventListener('change', event => nativeCommand('rotation', { enabled: event.target.checked ? '1' : '0' }));
   $('nativeMuted').addEventListener('change', event => nativeCommand('mute', { enabled: event.target.checked ? '1' : '0' }));
   $('nativeSpeed').addEventListener('change', event => nativeCommand('speed', { value: event.target.value }));

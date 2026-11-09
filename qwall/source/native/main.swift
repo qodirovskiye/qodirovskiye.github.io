@@ -16,20 +16,44 @@ struct WallpaperSelection: Codable {
     var localId: String?
 }
 
-@MainActor final class DesktopSurface {
+@MainActor final class DesktopSurface: NSObject, WKNavigationDelegate {
     let window: NSWindow
     var player: AVQueuePlayer?
     var looper: AVPlayerLooper?
     var web: WKWebView?
+    private let foldLayer: CALayer
+    private let shade: CALayer
+    let builtIn: Bool
+    private var playbackPaused = false
+    private var playbackSpeed = 1.0
 
-    init(screen: NSScreen, selection: WallpaperSelection) {
+    init(screen: NSScreen, selection: WallpaperSelection, offscreen: Bool = false) {
+        let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber
+        builtIn = number.map { CGDisplayIsBuiltin($0.uint32Value) != 0 } ?? false
+        let canvas = NSView(frame: NSRect(origin: .zero, size: screen.frame.size))
+        canvas.wantsLayer = true
+        canvas.layer?.masksToBounds = true
+        canvas.layer?.backgroundColor = NSColor.black.cgColor
+        let wallpaper = NSView(frame: canvas.bounds)
+        wallpaper.wantsLayer = true
+        wallpaper.autoresizingMask = [.width, .height]
+        canvas.addSubview(wallpaper)
+        foldLayer = wallpaper.layer!
+        shade = CALayer()
+        shade.frame = wallpaper.bounds
+        shade.backgroundColor = NSColor.black.cgColor
+        shade.opacity = 0
+        shade.zPosition = 1
+        foldLayer.addSublayer(shade)
         window = NSWindow(contentRect: screen.frame, styleMask: .borderless, backing: .buffered, defer: false)
+        super.init()
         window.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.desktopWindow)) + 1)
         window.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
         window.ignoresMouseEvents = true
         window.hidesOnDeactivate = false
         window.isReleasedWhenClosed = false
         window.backgroundColor = .black
+        window.contentView = canvas
         if let file = selection.file {
             let item = AVPlayerItem(url: URL(fileURLWithPath: file))
             let queue = AVQueuePlayer()
@@ -42,7 +66,8 @@ struct WallpaperSelection: Codable {
             layer.videoGravity = .resizeAspectFill
             layer.frame = view.bounds
             view.layer = layer
-            window.contentView = view
+            view.autoresizingMask = [.width, .height]
+            wallpaper.addSubview(view)
             queue.play()
         } else if let scene = selection.scene {
             let configuration = WKWebViewConfiguration()
@@ -50,19 +75,42 @@ struct WallpaperSelection: Codable {
             let view = WKWebView(frame: NSRect(origin: .zero, size: screen.frame.size), configuration: configuration)
             view.setValue(false, forKey: "drawsBackground")
             web = view
-            window.contentView = view
+            view.navigationDelegate = self
+            view.autoresizingMask = [.width, .height]
+            wallpaper.addSubview(view)
             if let resource = Bundle.main.resourceURL?.appendingPathComponent("web/native.html") {
                 view.loadFileURL(resource, allowingReadAccessTo: resource.deletingLastPathComponent())
             }
         }
+        if offscreen { window.setFrameOrigin(NSPoint(x: -4000, y: -4000)) }
         window.orderBack(nil)
     }
 
+    func fold(_ amount: Double) {
+        guard builtIn else { return }
+        var perspective = CATransform3DIdentity
+        perspective.m34 = -1 / max(foldLayer.bounds.height * 1.25, 1)
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        foldLayer.transform = CATransform3DRotate(perspective, amount * .pi * 0.39, 1, 0, 0)
+        shade.opacity = Float(amount * 0.62)
+        CATransaction.commit()
+    }
+
     func pause(_ paused: Bool, speed: Double = 1, muted: Bool = true) {
+        playbackPaused = paused
+        playbackSpeed = speed
         player?.isMuted = muted
         if paused { player?.pause() } else { player?.playImmediately(atRate: Float(speed)) }
-        web?.evaluateJavaScript("window.setSpeed && window.setSpeed(\(speed))", completionHandler: nil)
-        web?.evaluateJavaScript("window.setPaused(\(paused ? "true" : "false"))", completionHandler: nil)
+        updateWebPlayback()
+    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        updateWebPlayback()
+    }
+
+    private func updateWebPlayback() {
+        web?.evaluateJavaScript("window.setSpeed?.(\(playbackSpeed)); window.setPaused?.(\(playbackPaused));", completionHandler: nil)
     }
 
     func close() { player?.pause(); web?.stopLoading(); window.close() }
@@ -157,7 +205,14 @@ struct WallpaperSelection: Codable {
     var paused = false
     var speed = 1.0
     var muted = true
-    var suspended = false
+    var screenAsleep = false
+    var locked = false
+    var lidFold = false
+    var lidSensor: LidAngleSensor?
+    var lidTimer: Timer?
+    var lidRestAngle: Double?
+    var lastLidRead = Date.distantPast
+    var foldAmount = 0.0
     var pauseOnBattery = false
     var rotate = false
     var busy = false
@@ -170,9 +225,11 @@ struct WallpaperSelection: Codable {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        if CommandLine.arguments.contains("--smoke-test") { smokeTest(); return }
         status = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         status.button?.title = "◒"
         status.button?.toolTip = "Qwall — Live wallpapers"
+        lidFold = defaults.bool(forKey: "lidFold")
         pauseOnBattery = defaults.object(forKey: "pauseOnBattery") as? Bool ?? false
         speed = defaults.object(forKey: "speed") as? Double ?? 1
         muted = defaults.object(forKey: "muted") as? Bool ?? true
@@ -192,7 +249,6 @@ struct WallpaperSelection: Codable {
         if current != nil { rebuildScreens() }
         timer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in Task { @MainActor in self?.updatePlayback() } }
         if defaults.bool(forKey: "rotation") { toggleRotation() }
-        if CommandLine.arguments.contains("--smoke-test") { smokeTest(); return }
         if CommandLine.arguments.contains("--export-test") { exportTest(); return }
         if CommandLine.arguments.contains("--gallery-test") { galleryTest(); return }
         if CommandLine.arguments.contains("--desktop-playback-test") { desktopPlaybackTest(); return }
@@ -205,10 +261,11 @@ struct WallpaperSelection: Codable {
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool { openGallery(); return true }
 
-    func handle(_ url: URL) {
+    func handle(_ url: URL, fromGallery: Bool = false) {
         guard url.scheme == "qwall", let action = url.host,
               let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return }
         let query = Dictionary(components.queryItems?.map { ($0.name, $0.value ?? "") } ?? [], uniquingKeysWith: { first, _ in first })
+        if ["status", "control", "apply-local"].contains(action) && !fromGallery { return }
         if action == "status" { sendStatus(); return }
         if action == "control" { control(query); return }
         let target = query["target"] ?? "desktop"
@@ -219,7 +276,7 @@ struct WallpaperSelection: Codable {
             guard let scene = query["scene"], Self.scenes.contains(scene) else { showError("That wallpaper is not in the Qwall library."); return }
             Task { await apply(WallpaperSelection(scene: scene), target: target) }
         case "import":
-            let matches = localLibrary().filter { ($0["name"] as? String)?.localizedCaseInsensitiveCompare(query["name"] ?? "") == .orderedSame }
+            let matches = fromGallery ? localLibrary().filter { ($0["name"] as? String)?.localizedCaseInsensitiveCompare(query["name"] ?? "") == .orderedSame } : []
             if matches.count == 1, let id = matches[0]["nativeId"] as? String, let selection = localSelection(id: id) {
                 Task { await apply(selection, target: target) }
             } else { chooseVideo(target: target) }
@@ -241,6 +298,7 @@ struct WallpaperSelection: Codable {
         case "restore": if !busy { restoreSystem() }
         case "battery": if pauseOnBattery != enabled { toggleBattery() }
         case "rotation": if rotate != enabled { toggleRotation() }
+        case "lid": if lidFold != enabled { toggleLidFold() }
         case "mute": muted = enabled; defaults.set(muted, forKey: "muted"); updatePlayback(); makeMenu()
         case "speed":
             if let value = Double(query["value"] ?? ""), [0.5, 0.75, 1, 1.25, 1.5, 2].contains(value) {
@@ -259,8 +317,10 @@ struct WallpaperSelection: Codable {
         let pauseReason = playbackPauseReason()
         let info: [String: Any] = ["paused": paused, "rotation": rotate, "pauseOnBattery": pauseOnBattery,
                                  "effectivePaused": pauseReason != nil, "pauseReason": pauseReason ?? "",
+                                 "lidFold": lidFold, "lidSensorActive": lidSensor != nil,
                                  "muted": muted, "speed": speed, "scene": current?.scene ?? "",
-                                 "hasDesktop": current != nil, "title": current?.title ?? current?.scene ?? "", "libraryCount": localLibrary().count,
+                                 "hasDesktop": !surfaces.isEmpty, "localId": current?.localId ?? "",
+                                 "title": current?.title ?? current?.scene ?? "", "libraryCount": localLibrary().count,
                                  "displays": NSScreen.screens.map(\.localizedName),
                                  "displayIndex": targetScreen.map { $0 as Any } ?? NSNull(), "busy": busy]
         guard let json = try? JSONSerialization.data(withJSONObject: info), let string = String(data: json, encoding: .utf8) else { return }
@@ -334,6 +394,7 @@ struct WallpaperSelection: Codable {
         speedItem.submenu = speedMenu; menu.addItem(speedItem)
         menu.addItem(.separator())
         item("Pause on battery", #selector(toggleBattery)).state = pauseOnBattery ? .on : .off
+        item("Fold wallpaper with lid", #selector(toggleLidFold)).state = lidFold ? .on : .off
         item("Rotate library every 15 minutes", #selector(toggleRotation)).state = rotate ? .on : .off
         let screensItem = NSMenuItem(title: "Display", action: nil, keyEquivalent: "")
         let screensMenu = NSMenu()
@@ -400,7 +461,12 @@ struct WallpaperSelection: Codable {
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         guard let url = navigationAction.request.url else { decisionHandler(.cancel); return }
-        if url.scheme == "qwall" { handle(url); decisionHandler(.cancel) }
+        if url.scheme == "qwall" {
+            if webView === galleryWeb && navigationAction.sourceFrame.isMainFrame {
+                handle(url, fromGallery: true)
+            }
+            decisionHandler(.cancel)
+        }
         else if url.scheme == "https" || url.scheme == "http" { NSWorkspace.shared.open(url); decisionHandler(.cancel) }
         else if url.isFileURL || url.scheme == "about" || url.scheme == "blob" { decisionHandler(.allow) }
         else { decisionHandler(.cancel) }
@@ -463,16 +529,62 @@ struct WallpaperSelection: Codable {
 
     @objc func rebuildScreens() {
         surfaces.forEach { $0.close() }; surfaces = []
-        guard let current else { makeMenu(); return }
+        guard let current else { updateLidPolling(); makeMenu(); return }
         for (index, screen) in NSScreen.screens.enumerated() where targetScreen == nil || targetScreen == index {
             surfaces.append(DesktopSurface(screen: screen, selection: current))
         }
         updatePlayback(); makeMenu()
     }
-    @objc func sleepScreens() { suspended = true; updatePlayback() }
-    @objc func wakeScreens() { suspended = false; updatePlayback() }
-    @objc func screenLocked() { suspended = true; updatePlayback(); SystemWallpaper.nudgeIfActive() }
-    @objc func screenUnlocked() { suspended = false; updatePlayback() }
+    @objc func sleepScreens() { screenAsleep = true; updatePlayback() }
+    @objc func wakeScreens() { screenAsleep = false; updatePlayback() }
+    @objc func screenLocked() { locked = true; updatePlayback(); SystemWallpaper.nudgeIfActive() }
+    @objc func screenUnlocked() { locked = false; updatePlayback() }
+
+    @objc func toggleLidFold() {
+        lidFold.toggle()
+        defaults.set(lidFold, forKey: "lidFold")
+        updateLidPolling()
+        if lidFold && surfaces.contains(where: \.builtIn) && lidSensor == nil {
+            showInfo("Lid sensor unavailable", "Qwall could not read the hinge sensor on this Mac. Wallpaper playback continues normally.")
+        }
+        makeMenu()
+    }
+
+    func updateLidPolling() {
+        guard lidFold, !screenAsleep, !locked, surfaces.contains(where: \.builtIn) else {
+            lidTimer?.invalidate()
+            lidTimer = nil
+            lidSensor = nil
+            lidRestAngle = nil
+            foldAmount = 0
+            surfaces.forEach { $0.fold(0) }
+            return
+        }
+        guard lidTimer == nil, let sensor = LidAngleSensor() else { return }
+        lidSensor = sensor
+        lidRestAngle = sensor.degrees().map { max(65, $0) }
+        lastLidRead = Date()
+        let timer = Timer(timeInterval: 1 / 30, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.updateLidFold() }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        lidTimer = timer
+    }
+
+    func updateLidFold() {
+        let now = Date()
+        if let angle = lidSensor?.degrees() {
+            let openAngle = max(lidRestAngle ?? 65, angle)
+            lidRestAngle = openAngle
+            let target = min(1, max(0, (openAngle - angle - 3) / (openAngle - 23)))
+            foldAmount += (target - foldAmount) * 0.35
+            if target == 0 && foldAmount < 0.002 { foldAmount = 0 }
+            lastLidRead = now
+        } else if now.timeIntervalSince(lastLidRead) > 0.5 {
+            foldAmount = 0
+        }
+        surfaces.forEach { $0.fold(foldAmount) }
+    }
     func onBattery() -> Bool {
         guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
               let type = IOPSGetProvidingPowerSourceType(info)?.takeUnretainedValue() else { return false }
@@ -481,11 +593,12 @@ struct WallpaperSelection: Codable {
     func updatePlayback() {
         let stop = playbackPauseReason() != nil
         surfaces.forEach { $0.pause(stop, speed: speed, muted: muted) }
+        updateLidPolling()
         sendStatus()
     }
     func playbackPauseReason() -> String? {
         if paused { return "Paused" }
-        if suspended { return "Paused while the screen is asleep or locked" }
+        if screenAsleep || locked { return "Paused while the screen is asleep or locked" }
         if pauseOnBattery && onBattery() { return "Paused on battery — turn off Pause on battery to keep motion playing" }
         if pauseOnBattery && ProcessInfo.processInfo.isLowPowerModeEnabled { return "Paused for Low Power Mode — turn off Pause on battery to keep motion playing" }
         return nil
@@ -511,7 +624,10 @@ struct WallpaperSelection: Codable {
     @objc func toggleRotation() {
         rotate.toggle(); rotationTimer?.invalidate(); rotationTimer = nil
         defaults.set(rotate, forKey: "rotation")
-        if rotate { rotationTimer = Timer.scheduledTimer(withTimeInterval: 900, repeats: true) { [weak self] _ in Task { @MainActor in self?.nextScene() } } }
+        if rotate { rotationTimer = Timer.scheduledTimer(withTimeInterval: 900, repeats: true) { [weak self] _ in Task { @MainActor in
+            guard let self, !self.surfaces.isEmpty, self.playbackPauseReason() == nil else { return }
+            self.nextScene()
+        } } }
         makeMenu()
     }
     @objc func selectScreen(_ sender: NSMenuItem) { targetScreen = sender.tag == -1 ? nil : sender.tag; defaults.set(sender.tag, forKey: "display"); rebuildScreens() }
@@ -530,15 +646,25 @@ struct WallpaperSelection: Codable {
     func smokeTest() {
         Task {
             let selection = WallpaperSelection(scene: "aurora")
-            guard let screen = NSScreen.main else { print("SMOKE FAIL: no display"); NSApp.terminate(nil); return }
-            let surface = DesktopSurface(screen: screen, selection: selection)
+            guard let screen = NSScreen.main else { print("SMOKE FAIL: no display"); exit(1) }
+            let surface = DesktopSurface(screen: screen, selection: selection, offscreen: true)
+            surface.pause(true, speed: 0.75)
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             do {
-                let result = try await surface.web?.evaluateJavaScript("({ready: !!window.QwallScenes, width: document.querySelector('canvas').width})")
-                print("SMOKE: \(String(describing: result))")
+                let result = try await surface.web?.evaluateJavaScript("({ready: !!window.QwallScenes, width: document.querySelector('canvas').width, paused, speed})")
+                guard let state = result as? [String: Any], state["ready"] as? Bool == true,
+                      state["paused"] as? Bool == true, state["speed"] as? Double == 0.75,
+                      let width = state["width"] as? Int, width > 0 else {
+                    throw QwallError.message("Renderer did not load with the requested paused state and speed.")
+                }
                 surface.close()
-            } catch { print("SMOKE FAIL: \(error)") }
-            NSApp.terminate(nil)
+                print("SMOKE PASS: desktop renderer loaded and preserved startup pause and playback speed.")
+                exit(0)
+            } catch {
+                surface.close()
+                print("SMOKE FAIL: \(error.localizedDescription)")
+                exit(1)
+            }
         }
     }
     func desktopPlaybackTest() {
@@ -607,6 +733,14 @@ struct WallpaperSelection: Codable {
 }
 
 MainActor.assumeIsolated {
+    if CommandLine.arguments.contains("--lid-test") {
+        guard let angle = LidAngleSensor()?.degrees() else {
+            print("LID UNAVAILABLE")
+            exit(1)
+        }
+        print("LID OK: \(angle)°")
+        return
+    }
     let app = NSApplication.shared
     let delegate = QwallApp()
     app.delegate = delegate

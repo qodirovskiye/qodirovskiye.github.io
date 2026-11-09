@@ -8,3 +8,21 @@
 @media(prefers-reduced-motion:reduce){body:not([data-motion=full]) *,body:not([data-motion=full]) *::before,body:not([data-motion=full]) *::after{animation-duration:.01ms!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}body[data-motion=reduced] *,body[data-motion=reduced] *::before,body[data-motion=reduced] *::after{animation-duration:.01ms!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 
 .font-licenses{display:flex;justify-content:flex-end;align-items:center;gap:11px;font-size:8px;color:#52647e;padding:0 0 21px}.font-licenses>a{color:#7188a7;text-decoration:underline;text-underline-offset:3px}.font-licenses>a:hover{color:#bdd5f8}
+
+/* Larger labels and translucent action surfaces for the gallery and player. */
+body { font-size: 16px; }
+.toolbar .segmented button, .toolbar input, .filters button,
+.sort-label, .companion-button, .setting-row label { font-size: 14px; }
+.card-name, .setting-section h3 { font-size: 18px; }
+.setting-row p, #nativeNote, .settings-footer { font-size: 14px; }
+.button, .companion-button { min-height: 44px; font-size: 15px; }
+.button.white, .button.blue, .companion-button {
+  background: rgba(38, 62, 90, .68);
+  color: #f6faff;
+  border: 1px solid rgba(184, 218, 255, .55);
+  backdrop-filter: blur(14px);
+}
+.button.white:hover, .button.blue:hover, .companion-button:hover {
+  background: rgba(53, 86, 126, .82);
+  color: #fff;
+}

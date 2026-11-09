@@ -18,6 +18,8 @@ The download is built for Apple silicon and macOS 15 or later. It is locally sig
 - Local browser video library with IndexedDB persistence and removal.
 - Native desktop scene/video playback behind icons on one or all connected displays.
 - Native menu controls, adjustable playback speed and sound, display selection, battery/low-power/display-sleep pauses, and persistent 15-minute scene rotation. The installed gallery also exposes these companion settings.
+- Opt-in MacBook lid fold on supported built-in displays. Turn it on in Settings → Mac companion or from the menu bar.
+- Larger gallery controls and desktop apply feedback.
 - Experimental Lock Screen and screen saver registration on macOS 26 and 27, using new Qwall entries in the per-user aerial catalog.
 - Exact before/after backups for system wallpaper changes; restore avoids overwriting subsequent external edits.
 
@@ -25,12 +27,12 @@ The download is built for Apple silicon and macOS 15 or later. It is locally sig
 
 The browser cannot change system wallpaper by itself. Install and open the companion first. Browser previews do not imply that macOS applied the wallpaper.
 
-Lock Screen integration uses undocumented macOS catalog formats. Catalog transforms and HEVC Main10 video conversion were tested, but actual Lock Screen playback and repeated lock/unlock cycles have **not been visually verified**. Short clips may hold their last frame. FileVault's pre-login screen is outside the signed-in user session. This is not full MacWall feature parity: there is no Music Sync, Bend lid effect, or MacWall catalog. Qwall does not bypass MacWall's trial or use its media or executable code.
+Lock Screen integration uses undocumented macOS catalog formats. Catalog transforms and HEVC Main10 video conversion were tested, but actual Lock Screen playback and repeated lock/unlock cycles have **not been visually verified**. Short clips may hold their last frame. FileVault's pre-login screen is outside the signed-in user session. The lid effect uses a compatible MacBook hinge sensor and applies to Qwall’s desktop wallpaper layer. Sensor access and the observed effect can vary by Mac model and macOS version.
 
 ## Build
 
 Install Xcode or matching Command Line Tools, then run `bash build.sh` from this folder. Output: `build/Qwall.app` and `downloads/Qwall.zip`. No third-party dependencies are required. The script builds an Apple silicon app.
 
-Run the built executable with `--smoke-test --no-gallery` for the desktop render check or `--export-test --no-gallery` for the six-second scene export check. These checks need a logged-in graphical Mac session and access to macOS video services. Pure wallpaper-selection fixtures are in `tests/`.
+Run the built executable with `--smoke-test --no-gallery` for the desktop render check or `--export-test --no-gallery` for the six-second scene export check. These checks need a logged-in graphical Mac session and access to macOS video services. Run the executable with `--lid-test` to check whether the hinge sensor is readable. Wallpaper-selection fixtures are in `tests/`.
 
-Generated scenes and Qwall application source are original. Bundled Geist and Averia Serif Libre fonts retain their SIL Open Font License notices in `web/fonts/`. Personal wallpaper files are stored separately and are not included in the public site or app download. Architecture references and runtime limitations are documented in `research/system-wallpaper.md`; local REA metadata is kept separately and is not published.
+Generated scenes and Qwall application source are original. Bundled Geist and Averia Serif Libre fonts retain their SIL Open Font License notices in `web/fonts/`. Personal wallpaper files are stored separately and are not included in the public site or app download.
